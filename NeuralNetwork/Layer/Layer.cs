@@ -13,26 +13,28 @@
     
     public class Layer
     {
-        private Matrix<double> weights;
-        private Matrix<double> bias;
-        private Matrix<double> localField;
-        private Matrix<double> output;
-        private IActivationFunction activationFunction;
         private int numberOfNeurons;
         private int numberOfInputs;
+        private IActivationFunction activationFunction;
+        private Matrix<double> weights;
+        private Vector<double> bias;
+        private Vector<double> localField;
+        private Vector<double> output;
+        
 
         public Layer(IActivationFunction activationFunction, int numOfNeurons, int numOfInputs)
         {
-            this.activationFunction = activationFunction;
-            bias = Matrix<double>.Build.Random(numOfNeurons, 1, new Normal(0, 0.5));
-            localField = Matrix<double>.Build.Dense(numOfNeurons, 1);
-            output = Matrix<double>.Build.Dense(numOfNeurons, 1);
-            weights = Matrix<double>.Build.Random(numOfNeurons, numOfInputs, new Normal(0, 0.5));
             this.numberOfNeurons = numOfNeurons;
             this.numberOfInputs = numOfInputs;
+            this.activationFunction = activationFunction;
+            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, 0.5));
+            localField = Vector<double>.Build.Dense(NumberOfNeurons);
+            output = Vector<double>.Build.Dense(NumberOfNeurons);
+            weights = Matrix<double>.Build.Random(numOfNeurons, numOfInputs, new Normal(0, 0.5));
+            
         }
 
-        public void ComputeOutput(Matrix<double> input)
+        public void ComputeOutput(Vector<double> input)
         {
             //Compute the local field without the bias
             weights.Multiply(input, localField);
@@ -42,7 +44,7 @@
             localField.Map((l => activationFunction.Function(l)), output);
         }
 
-        public void Update(Matrix<double> weightsUpdates, Matrix<double> biasesUpdates)
+        public void Update(Matrix<double> weightsUpdates, Vector<double> biasesUpdates)
         {
             weights.Add(weightsUpdates, weights);
             bias.Add(biasesUpdates, bias);
@@ -55,12 +57,12 @@
             get { return weights; }
         }
 
-        public Matrix<double> Output
+        public Vector<double> Output
         {
             get { return output; }
         }
 
-        public Matrix<double> LocalFieldDifferentiated
+        public Vector<double> LocalFieldDifferentiated
         {
             get { return localField.Map((l => activationFunction.Derivative(l))); }
         }

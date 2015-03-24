@@ -18,66 +18,6 @@ namespace NeuralNetwork
     static class Program
     {
 
-        private static void garbageTest()
-        {
-            int[] layerSize = { 3, 1 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new Threshold(0.5) };
-
-            NeuralNet net = new NeuralNet(2, layerSize, functions);
-
-            Matrix<double> input1 = Matrix<double>.Build.DenseOfArray(new[,] { { 0.0 }, { 0.0 } });
-            Matrix<double> input2 = Matrix<double>.Build.DenseOfArray(new[,] { { 0.0 }, { 1.0 } });
-            Matrix<double> input3 = Matrix<double>.Build.DenseOfArray(new[,] { { 1.0 }, { 0.0 } });
-            Matrix<double> input4 = Matrix<double>.Build.DenseOfArray(new[,] { { 1.0 }, { 1.0 } });
-
-            net.ComputeOutput(input1);
-            Console.WriteLine("output1 {0}", net.Output);
-
-            net.ComputeOutput(input2);
-            Console.WriteLine("output2 {0}", net.Output);
-
-            net.ComputeOutput(input3);
-            Console.WriteLine("output3 {0}", net.Output);
-
-            net.ComputeOutput(input4);
-            Console.WriteLine("output4 {0}", net.Output);
-
-            Matrix<double> m1 = Matrix<double>.Build.DenseOfArray(new[,] { { 1d, 2d, 3d }, { 4d, 5d, 6d } });
-            Matrix<double> m2 = Matrix<double>.Build.DenseOfArray(new[,] { { 2d }, { 3d }, { 4d } });
-
-            Console.WriteLine(m1);
-            Console.WriteLine(m2);
-            int i = 0;
-            m1.MapInplace((x) =>
-            {
-                return x * m2.At((i++) / 2, 0);
-            });
-            Console.WriteLine(m1);
-
-            Matrix<double> test = Matrix<double>.Build.DenseOfArray(new[,] { { 1d, 2d, 3d, 4d }, { 5d, 6d, 7d, 8d } });
-            Matrix<double> mul = Matrix<double>.Build.DenseOfArray(new[,] { { 10d }, { 20d } });
-            Console.WriteLine(test);
-            Console.WriteLine(mul);
-            Console.WriteLine(test.Transpose().Multiply(mul));
-
-            Matrix<double> m = Matrix<double>.Build.Random(3, 5);
-            int indexMax = 0;
-            double max = -1000;
-            for (int r = 0; r < m.RowCount; r++)
-                for (int c = 0; c < m.ColumnCount; c++)
-                {
-                    double el = m.At(r, c);
-                    if (el > max)
-                    {
-                        max = el;
-                        indexMax = r * m.ColumnCount + c;
-                    }
-                }
-            Console.WriteLine(m);
-            Console.WriteLine("max: {0} in position {1}, row {2} column {3}", max, indexMax,
-                (indexMax / m.ColumnCount), (indexMax % m.ColumnCount));
-        }
-
         private static void TestXOR()
         {
             int[] layerSize = { 3, 1 };
@@ -86,56 +26,56 @@ namespace NeuralNetwork
             NeuralNet net = new NeuralNet(2, layerSize, functions);
 
             #region Input
-            Matrix<double> input1 = Matrix<double>.Build.DenseOfArray(new[,] { { 0.0 }, { 0.0 } });
-            Matrix<double> input2 = Matrix<double>.Build.DenseOfArray(new[,] { { 0.0 }, { 1.0 } });
-            Matrix<double> input3 = Matrix<double>.Build.DenseOfArray(new[,] { { 1.0 }, { 0.0 } });
-            Matrix<double> input4 = Matrix<double>.Build.DenseOfArray(new[,] { { 1.0 }, { 1.0 } });
+            Vector<double> input1 = Vector<double>.Build.Dense(new[] { 0.0, 0.0 });
+            Vector<double> input2 = Vector<double>.Build.Dense(new[] { 0.0, 0.1 });
+            Vector<double> input3 = Vector<double>.Build.Dense(new[] { 1.0, 0.0 });
+            Vector<double> input4 = Vector<double>.Build.Dense(new[] { 1.0, 0.1 });
 
-            Matrix<double>[] inputs = { input1, input2, input3, input4 };
+            Vector<double>[] inputs = { input1, input2, input3, input4 };
             #endregion
 
             #region Output
-            Matrix<double> output1 = Matrix<double>.Build.DenseOfArray(new[,] { { 0.0 } });
-            Matrix<double> output2 = Matrix<double>.Build.DenseOfArray(new[,] { { 1.0 } });
-            Matrix<double> output3 = Matrix<double>.Build.DenseOfArray(new[,] { { 1.0 } });
-            Matrix<double> output4 = Matrix<double>.Build.DenseOfArray(new[,] { { 0.0 } });
+            Vector<double> output1 = Vector<double>.Build.Dense(new[] { 0.0 });
+            Vector<double> output2 = Vector<double>.Build.Dense(new[] { 1.0 });
+            Vector<double> output3 = Vector<double>.Build.Dense(new[] { 1.0 });
+            Vector<double> output4 = Vector<double>.Build.Dense(new[] { 0.0 });
 
-            Matrix<double>[] outputs = { output1, output2, output3, output4 };
+            Vector<double>[] outputs = { output1, output2, output3, output4 };
             #endregion
 
             Console.WriteLine(  "****************\n"+
                                 "*    Before    *\n"+
                                 "****************\n");
             net.ComputeOutput(input1);
-            Console.WriteLine("output1 {0} - atteso {1}", net.Output.At(0, 0), 0);
+            Console.WriteLine("output1 {0} - atteso {1}", net.Output, 0);
 
             net.ComputeOutput(input2);
-            Console.WriteLine("output2 {0} - atteso {1}", net.Output.At(0, 0), 1);
+            Console.WriteLine("output2 {0} - atteso {1}", net.Output, 1);
 
             net.ComputeOutput(input3);
-            Console.WriteLine("output3 {0} - atteso {1}", net.Output.At(0, 0), 1);
+            Console.WriteLine("output3 {0} - atteso {1}", net.Output, 1);
 
             net.ComputeOutput(input4);
-            Console.WriteLine("output4 {0} - atteso {1}", net.Output.At(0, 0), 0);
+            Console.WriteLine("output4 {0} - atteso {1}", net.Output, 0);
 
             BackPropagation bprop = new BackPropagation(net);
             bprop.LearningRate = 0.7;
-            bprop.learn(inputs, outputs);
+            bprop.Learn(inputs, outputs);
 
             Console.WriteLine(  "\n****************\n"+
                                 "*     After    *\n"+
                                 "****************\n");
             net.ComputeOutput(input1);
-            Console.WriteLine("output1 {0} - atteso {1}", net.Output.At(0,0), 0);
+            Console.WriteLine("output1 {0} - atteso {1}", net.Output, 0);
                                                                     
             net.ComputeOutput(input2);
-            Console.WriteLine("output2 {0} - atteso {1}", net.Output.At(0, 0), 1);
-                                                                      
+            Console.WriteLine("output2 {0} - atteso {1}", net.Output, 1);
+                                                                    
             net.ComputeOutput(input3);
-            Console.WriteLine("output3 {0} - atteso {1}", net.Output.At(0, 0), 1);
+            Console.WriteLine("output3 {0} - atteso {1}", net.Output, 1);
                                                                     
             net.ComputeOutput(input4);
-            Console.WriteLine("output4 {0} - atteso {1}", net.Output.At(0, 0), 0);
+            Console.WriteLine("output4 {0} - atteso {1}", net.Output, 0);
         }
 
         private static void TestMonk()
@@ -153,7 +93,7 @@ namespace NeuralNetwork
             int[] layerSize = { 3, 1 };
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
-            BackPropagation backProp = new BackPropagation(net, 0.2,0.6);            
+            BackPropagation backProp = new BackPropagation(net, 0.3);            
 
             
             using (StringReader trainSet = new StringReader(Properties.Resources.monks_1_train))
@@ -166,7 +106,9 @@ namespace NeuralNetwork
                 expectedOutputs = dataset.Item2;
 
                 testInput = testset.Item1;
-                testOutput = testset.Item2;             
+                testOutput = testset.Item2;
+
+                backProp.MaxEpoch = 10000;
 
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 1");
@@ -174,8 +116,7 @@ namespace NeuralNetwork
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
 
                 Console.Write("Train the network...");
-                backProp.learn(ToMatrix(trainingExamples), 
-                                    ToMatrix(expectedOutputs));
+                backProp.Learn(trainingExamples,expectedOutputs);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
@@ -187,7 +128,7 @@ namespace NeuralNetwork
             #region Testing Monk Dataset 2
             layerSize = new[] { 3, 1 };            
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagation(net, 0.1, 0.5);
+            backProp = new BackPropagation(net, 0.7, 0.3);
 
 
             using (StringReader trainSet = new StringReader(Properties.Resources.monks_2_train))
@@ -202,14 +143,15 @@ namespace NeuralNetwork
                 testInput = testset.Item1;
                 testOutput = testset.Item2;
 
+                backProp.MaxEpoch = 10000;
+
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 2");
                 Console.WriteLine("*******************");
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
 
                 Console.Write("Train the network...");
-                backProp.learn(ToMatrix(trainingExamples),
-                                    ToMatrix(expectedOutputs));
+                backProp.Learn(trainingExamples, expectedOutputs);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
@@ -242,8 +184,7 @@ namespace NeuralNetwork
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
 
                 Console.Write("Train the network...");
-                backProp.learn(ToMatrix(trainingExamples),
-                                    ToMatrix(expectedOutputs));
+                backProp.Learn(trainingExamples, expectedOutputs);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
@@ -280,7 +221,7 @@ namespace NeuralNetwork
             return input.ToArray();
         }
 
-        static Tuple<double[][], double[][]> ReadDataset(StringReader stream)
+        static Tuple<double[][], double[][]> ReadDataset(StringReader stream, string outputFile = null)
         {
             try
             {
@@ -291,6 +232,12 @@ namespace NeuralNetwork
                 List<double[]> inputs = new List<double[]>();
                 List<double[]> outputs = new List<double[]>();
                 int c = 0;
+                StreamWriter writer = null;
+
+
+                if (outputFile != null)
+                    writer = new StreamWriter(new FileStream(outputFile, FileMode.CreateNew));
+
                 while (trainingExample != null)
                 {
                     ++c;
@@ -303,8 +250,20 @@ namespace NeuralNetwork
                     inputs.Add(input);
                     outputs.Add(output);
 
+                    if (writer != null)
+                    {
+                        foreach (double d in input)
+                            writer.Write(d.ToString() + " ");
+                        foreach (double d in output)
+                            writer.Write(d.ToString() + " ");
+                        writer.WriteLine();
+                    }
+
                     trainingExample = stream.ReadLine();
                 }
+
+                if(writer != null)
+                    writer.Close();
 
                 double[][] inputList = inputs.ToArray();
                 double[][] outputList = outputs.ToArray();
@@ -327,8 +286,8 @@ namespace NeuralNetwork
 
             for (int i = 0; i < input.Length; i++)
             {
-                net.ComputeOutput(Matrix<double>.Build.DenseOfColumnArrays(input[i]));
-                double netOutput = net.Output.At(0,0);
+                net.ComputeOutput(input[i]);
+                double netOutput = net.Output.At(0);
                 double roundOutput = Math.Round(netOutput);
                 double expected = output[i][0];
 

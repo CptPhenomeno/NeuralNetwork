@@ -12,7 +12,7 @@
     public class NeuralNet :IEnumerable
     {
         private Layer[] netLayers;
-        private Matrix<double> output;
+        private Vector<double> output;
 
         public NeuralNet(int numOfInput, int[] sizeOfLayers, IActivationFunction[] activationOfLayers)
         {
@@ -29,12 +29,17 @@
                 netLayers[index] = new Layer(activationOfLayers[index],sizeOfLayers[index], sizeOfLayers[index-1]);
             }
 
-            output = Matrix<double>.Build.Dense(sizeOfLayers[length - 1], 1);
+            output = Vector<double>.Build.Dense(sizeOfLayers[length - 1], 1);
         }
 
-        public void ComputeOutput(Matrix<double> x)
+        public void ComputeOutput(double[] x)
         {
-            Matrix<double> tmp = x;
+            ComputeOutput(Vector<double>.Build.DenseOfArray(x));
+        }
+
+        public void ComputeOutput(Vector<double> x)
+        {
+            Vector<double> tmp = x;
 
             foreach (Layer layer in netLayers)
             {
@@ -47,7 +52,7 @@
             tmp.CopyTo(output);
         }
 
-        public void UpdateNetwork(Matrix<double>[] weightsUpdates, Matrix<double>[] biasesUpdates)
+        public void UpdateNetwork(Matrix<double>[] weightsUpdates, Vector<double>[] biasesUpdates)
         {
             for (int nextLayerIndex = 0; nextLayerIndex < NumberOfLayers; nextLayerIndex++)
             {
@@ -62,7 +67,7 @@
             get { return netLayers[layerIndex]; }
         }
 
-        public Matrix<double> Output
+        public Vector<double> Output
         {
             get { return output; }
         }

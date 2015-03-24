@@ -11,10 +11,10 @@
     public class BackPropagation
     {
         private NeuralNet net;
-        private Matrix<double>[] deltas;
+        private Vector<double>[] deltas;
         private Matrix<double>[] weightsUpdates;
         private Matrix<double>[] oldWeightsUpdates;
-        private Matrix<double>[] biasesUpdates;
+        private Vector<double>[] biasesUpdates;
         private int batchSize;
         private double learningRate;
         private double momentum;
@@ -34,7 +34,31 @@
             InitializeNetworkValues();
         }
 
-        public void learn(Matrix<double>[] inputs, Matrix<double>[] expectedOutputs)
+        public void Learn(double[][] inputs, double[][] outputs, double[][] testSet = null)
+        {
+            Vector<double>[] vectorInputs = new Vector<double>[inputs.Length];
+            Vector<double>[] vectorOutputs = new Vector<double>[outputs.Length];
+            Vector<double>[] vectorTest = null;
+
+            int inputIndex = 0, outputIndex = 0;
+
+            foreach (double[] input in inputs)
+                vectorInputs[inputIndex++] = Vector<double>.Build.DenseOfArray(input);
+
+            foreach (double[] output in outputs)
+                vectorOutputs[outputIndex++] = Vector<double>.Build.DenseOfArray(output);
+
+            if (testSet != null)
+            {
+                int testIndex = 0;
+                foreach (double[] test in testSet)
+                    vectorOutputs[testIndex++] = Vector<double>.Build.DenseOfArray(test);
+            }
+
+            Learn(vectorInputs, vectorOutputs, vectorTest);
+        }
+
+        public void Learn(Vector<double>[] inputs, Vector<double>[] expectedOutputs, Vector<double>[] testSet = null)
         {
             double error = 0.0;
             int epoch = -1;
@@ -49,7 +73,7 @@
             Console.WriteLine("Error {0} at epoch {1}", error, epoch);
         }
 
-        private double RunEpoch(Matrix<double>[] inputs, Matrix<double>[] expectedOutputs)
+        private double RunEpoch(Vector<double>[] inputs, Vector<double>[] expectedOutputs)
         {
             double error = 0.0;
 
@@ -63,18 +87,18 @@
             return error;
         }
 
-        private double RunBatch(int start, Matrix<double>[] inputs, Matrix<double>[] expectedOutputs)
+        private double RunBatch(int start, Vector<double>[] inputs, Vector<double>[] expectedOutputs)
         {
             double error = 0.0;
 
             for (int next = start; next < start + batchSize; next++)
             {
-                Matrix<double> input = inputs[next];
+                Vector<double> input = inputs[next];
                 net.ComputeOutput(input);
                 //Vector with error for each output of the network
-                Matrix<double> netError = expectedOutputs[next] - net.Output;
+                Vector<double> netError = expectedOutputs[next] - net.Output;
                 //I think that this matrix is 1x1 but is better check...
-                error += netError.Multiply(netError.Transpose()).At(0,0);
+                error += netError.DotProduct(netError);
 
                 ComputeOutputLayerUpdate(netError);
                 ComputeHiddenLayersUpdate(input);                
@@ -83,7 +107,7 @@
             return error;
         }
 
-        private void ComputeOutputLayerUpdate(Matrix<double> netError)
+        private void ComputeOutputLayerUpdate(Vector<double> netError)
         {
             int outputLayerIndex = net.NumberOfLayers - 1;
             //Delta factor of output layer using Hadamard multiplication
@@ -92,16 +116,17 @@
             //Update value for output biases
             biasesUpdates[outputLayerIndex].Add(deltas[outputLayerIndex].Multiply(learningRate), biasesUpdates[outputLayerIndex]);
 
-            Matrix<double> outputLayerInput = net[outputLayerIndex - 1].Output;
+            Vector<double> outputLayerInput = net[outputLayerIndex - 1].Output;
             
             //Update value for output weights
-            Matrix<double> update = biasesUpdates[outputLayerIndex].Multiply(outputLayerInput.Transpose());
+            //I have some doubt here...
+            Matrix<double> update = biasesUpdates[outputLayerIndex].ToColumnMatrix().Multiply(outputLayerInput.ToRowMatrix());
             weightsUpdates[outputLayerIndex].Add(update, weightsUpdates[outputLayerIndex]);
             weightsUpdates[outputLayerIndex].Add(oldWeightsUpdates[outputLayerIndex], weightsUpdates[outputLayerIndex]);
             oldWeightsUpdates[outputLayerIndex].Add(update.Multiply(momentum),oldWeightsUpdates[outputLayerIndex]);
         }
 
-        private void ComputeHiddenLayersUpdate(Matrix<double> input)
+        private void ComputeHiddenLayersUpdate(Vector<double> input)
         {
             int actualLayerIndex = net.NumberOfLayers - 2;
             int numOfLayers = net.NumberOfLayers;
@@ -109,15 +134,15 @@
             for (; actualLayerIndex >= 0; actualLayerIndex--)
             {                
                 //The next layer support for update
-                Matrix<double> sigma = net[actualLayerIndex + 1].Weights.Transpose().Multiply(deltas[actualLayerIndex + 1]);
+                Vector<double> sigma = net[actualLayerIndex + 1].Weights.Transpose().Multiply(deltas[actualLayerIndex + 1]);
                 deltas[actualLayerIndex] = sigma.PointwiseMultiply(net[actualLayerIndex].LocalFieldDifferentiated);
 
                 biasesUpdates[actualLayerIndex].Add(deltas[actualLayerIndex].Multiply(learningRate), biasesUpdates[actualLayerIndex]);
 
-                Matrix<double> previousLayerOutput = 
+                Vector<double> previousLayerOutput = 
                     (actualLayerIndex == 0) ? input : net[actualLayerIndex - 1].Output;
                 
-                Matrix<double> update = biasesUpdates[actualLayerIndex].Multiply(previousLayerOutput.Transpose());
+                Matrix<double> update = biasesUpdates[actualLayerIndex].ToColumnMatrix().Multiply(previousLayerOutput.ToRowMatrix());
                 weightsUpdates[actualLayerIndex].Add(update,weightsUpdates[actualLayerIndex]);
                 weightsUpdates[actualLayerIndex].Add(oldWeightsUpdates[actualLayerIndex], weightsUpdates[actualLayerIndex]);
                 oldWeightsUpdates[actualLayerIndex].Add(update.Multiply(momentum), oldWeightsUpdates[actualLayerIndex]);
@@ -129,13 +154,13 @@
         {
             foreach (Matrix<double> m in weightsUpdates)
                 m.Divide(batchSize, m);
-            foreach (Matrix<double> b in biasesUpdates)
+            foreach (Vector<double> b in biasesUpdates)
                 b.Divide(batchSize, b);
 
             net.UpdateNetwork(weightsUpdates, biasesUpdates);
             foreach (Matrix<double> m in weightsUpdates)
                 m.Clear();
-            foreach (Matrix<double> b in biasesUpdates)
+            foreach (Vector<double> b in biasesUpdates)
                 b.Clear();
             foreach (Matrix<double> old in oldWeightsUpdates)
                 old.Clear();
@@ -179,18 +204,18 @@
         {
             int numberOfLayers = net.NumberOfLayers;
 
-            deltas = new Matrix<double>[numberOfLayers];
+            deltas = new Vector<double>[numberOfLayers];
             weightsUpdates = new Matrix<double>[numberOfLayers];
             oldWeightsUpdates = new Matrix<double>[numberOfLayers];
-            biasesUpdates = new Matrix<double>[numberOfLayers];
+            biasesUpdates = new Vector<double>[numberOfLayers];
 
             int nextLayer = 0;
             foreach (Layer layer in net)
             {
-                deltas[nextLayer] = Matrix<double>.Build.Dense(layer.NumberOfNeurons, 1);
+                deltas[nextLayer] = Vector<double>.Build.Dense(layer.NumberOfNeurons);
                 weightsUpdates[nextLayer] = Matrix<double>.Build.Dense(layer.NumberOfNeurons, layer.NumberOfInputs);
                 oldWeightsUpdates[nextLayer] = Matrix<double>.Build.Dense(layer.NumberOfNeurons, layer.NumberOfInputs);
-                biasesUpdates[nextLayer] = Matrix<double>.Build.Dense(layer.NumberOfNeurons, 1);
+                biasesUpdates[nextLayer] = Vector<double>.Build.Dense(layer.NumberOfNeurons);
                 nextLayer++;
             }
         }
