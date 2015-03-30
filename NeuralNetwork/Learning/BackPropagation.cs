@@ -21,73 +21,17 @@
         private double maxError;
         private int maxEpoch;
 
-        public BackPropagation(NeuralNet net, double learningRate = 0.3, double momentum = 0.0, double maxError = 0.01,
-                               int maxEpoch = 1000, int batchSize = 1)
+        public BackPropagation(NeuralNet net, double learningRate, double momentum, int batchSize)
         {
             this.learningRate = learningRate;
             this.momentum = momentum;
-            this.maxError = maxError;
-            this.maxEpoch = maxEpoch;
             this.batchSize = batchSize;
 
             this.net = net;
             InitializeNetworkValues();
         }
 
-        public void Learn(double[][] inputs, double[][] outputs, double[][] testSet = null)
-        {
-            Vector<double>[] vectorInputs = new Vector<double>[inputs.Length];
-            Vector<double>[] vectorOutputs = new Vector<double>[outputs.Length];
-            Vector<double>[] vectorTest = null;
-
-            int inputIndex = 0, outputIndex = 0;
-
-            foreach (double[] input in inputs)
-                vectorInputs[inputIndex++] = Vector<double>.Build.DenseOfArray(input);
-
-            foreach (double[] output in outputs)
-                vectorOutputs[outputIndex++] = Vector<double>.Build.DenseOfArray(output);
-
-            if (testSet != null)
-            {
-                int testIndex = 0;
-                foreach (double[] test in testSet)
-                    vectorOutputs[testIndex++] = Vector<double>.Build.DenseOfArray(test);
-            }
-
-            Learn(vectorInputs, vectorOutputs, vectorTest);
-        }
-
-        public void Learn(Vector<double>[] inputs, Vector<double>[] expectedOutputs, Vector<double>[] testSet = null)
-        {
-            double error = 0.0;
-            int epoch = -1;
-            int numOfElemInEpoch = inputs.Length;
-
-            do
-            {
-                ++epoch;
-                error = RunEpoch(inputs, expectedOutputs);
-                error /= numOfElemInEpoch;                
-            } while (error > MaxError && epoch < MaxEpoch);
-            Console.WriteLine("Error {0} at epoch {1}", error, epoch);
-        }
-
-        private double RunEpoch(Vector<double>[] inputs, Vector<double>[] expectedOutputs)
-        {
-            double error = 0.0;
-
-            for (int next = 0; next < inputs.Length; next += batchSize)
-            {
-                error += RunBatch(next, inputs, expectedOutputs);
-                //Update the network only after batchSize examples
-                UpdateNetwork();
-            }
-
-            return error;
-        }
-
-        private double RunBatch(int start, Vector<double>[] inputs, Vector<double>[] expectedOutputs)
+        public double Run(int start, Vector<double>[] inputs, Vector<double>[] expectedOutputs)
         {
             double error = 0.0;
 
@@ -150,7 +94,7 @@
             
         }
 
-        private void UpdateNetwork()
+        public void UpdateNetwork()
         {
             foreach (Matrix<double> m in weightsUpdates)
                 m.Divide(batchSize, m);
@@ -184,18 +128,6 @@
         {
             get { return momentum; }
             set { momentum = value; }
-        }
-
-        public double MaxError
-        {
-            get { return maxError; }
-            set { maxError = value; }
-        }
-
-        public int MaxEpoch
-        {
-            get { return maxEpoch; }
-            set { maxEpoch = value; }
         }
 
         #endregion

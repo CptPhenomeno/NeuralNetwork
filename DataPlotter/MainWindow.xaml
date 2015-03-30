@@ -1,9 +1,11 @@
 ﻿<Window x:Class="DataPlotter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        xmlns:wfchart="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
+        Title="MainWindow" Height="500" Width="825">
     <Grid> 
         <WindowsFormsHost Name="winformhost">
         </WindowsFormsHost>
     </Grid>
+ 
 </Window>

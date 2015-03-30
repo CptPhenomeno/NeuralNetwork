@@ -22,7 +22,7 @@ namespace NeuralNetwork.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace NeuralNetwork.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NeuralNetwork.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace NeuralNetwork.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,250 +61,258 @@ namespace NeuralNetwork.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1 1 1 1 1 1 1 
-        ///1 1 1 1 1 2 1 
-        ///1 1 1 1 2 1 1 
-        ///1 1 1 1 2 2 1 
-        ///1 1 1 1 3 1 1 
-        ///1 1 1 1 3 2 1 
-        ///1 1 1 1 4 1 1 
-        ///1 1 1 1 4 2 1 
-        ///1 1 1 2 1 1 1 
-        ///1 1 1 2 1 2 1 
-        ///1 1 1 2 2 1 1 
-        ///1 1 1 2 2 2 1 
-        ///1 1 1 2 3 1 1 
-        ///1 1 1 2 3 2 1 
-        ///1 1 1 2 4 1 1 
-        ///1 1 1 2 4 2 1 
-        ///1 1 1 3 1 1 1 
-        ///1 1 1 3 1 2 1 
-        ///1 1 1 3 2 1 1 
-        ///1 1 1 3 2 2 1 
-        ///1 1 1 3 3 1 1 
-        ///1 1 1 3 3 2 1 
-        ///1 1 1 3 4 1 1 
-        ///1 1 1 3 4 2 1 
-        ///1 1 2 1 1 1 1 
-        ///1 1 2 1 1 2 1 
-        ///1 1 2 1 2 1 1 
-        ///1 1 2 1 2 2 1 
-        ///1 1 2 1 3 1 1 
-        ///1 1 2 1 3 2 1 
-        ///1 1 2 1 4 1 1 
-        ///1 1 2 1 4 2 1 
-        /// [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to 1 1 1 1 1 1 1
+        ///1 1 1 1 1 1 2
+        ///1 1 1 1 1 2 1
+        ///1 1 1 1 1 2 2
+        ///1 1 1 1 1 3 1
+        ///1 1 1 1 1 3 2
+        ///1 1 1 1 1 4 1
+        ///1 1 1 1 1 4 2
+        ///1 1 1 1 2 1 1
+        ///1 1 1 1 2 1 2
+        ///1 1 1 1 2 2 1
+        ///1 1 1 1 2 2 2
+        ///1 1 1 1 2 3 1
+        ///1 1 1 1 2 3 2
+        ///1 1 1 1 2 4 1
+        ///1 1 1 1 2 4 2
+        ///1 1 1 1 3 1 1
+        ///1 1 1 1 3 1 2
+        ///1 1 1 1 3 2 1
+        ///1 1 1 1 3 2 2
+        ///1 1 1 1 3 3 1
+        ///1 1 1 1 3 3 2
+        ///1 1 1 1 3 4 1
+        ///1 1 1 1 3 4 2
+        ///1 1 1 2 1 1 1
+        ///1 1 1 2 1 1 2
+        ///1 1 1 2 1 2 1
+        ///1 1 1 2 1 2 2
+        ///1 1 1 2 1 3 1
+        ///1 1 1 2 1 3 2
+        ///1 1 1 2 1 4 1
+        ///1 1 1 2 1 4 2
+        ///1 1 1 2 2 1 1
+        ///1 1 1 2 2 1 2
+        ///1  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string monks_1_test {
+        public static string monks_1_test {
             get {
                 return ResourceManager.GetString("monks_1_test", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1 1 1 1 3 1 1
-        ///1 1 1 3 2 1 1
+        ///   Looks up a localized string similar to 1 1 1 1 1 3 1
         ///1 1 1 1 3 2 1
-        ///1 1 1 3 3 2 1
+        ///1 1 1 1 1 3 2
+        ///1 1 1 1 3 3 2
+        ///1 1 1 2 1 2 1
+        ///1 1 1 2 1 2 2
+        ///1 1 1 2 2 3 1
+        ///1 1 1 2 2 4 1
+        ///1 1 1 2 3 1 2
+        ///1 1 2 1 1 1 2
+        ///0 1 2 1 1 2 1
+        ///0 1 2 1 1 3 1
+        ///0 1 2 1 1 4 2
         ///1 1 2 1 2 1 1
-        ///1 1 2 1 2 2 1
-        ///1 1 2 2 3 1 1
-        ///1 1 2 2 4 1 1
-        ///1 1 2 3 1 2 1
-        ///1 2 1 1 1 2 1
-        ///1 2 1 1 2 1 0
-        ///1 2 1 1 3 1 0
-        ///1 2 1 1 4 2 0
-        ///1 2 1 2 1 1 1
-        ///1 2 1 2 3 1 0
-        ///1 2 1 2 3 2 0
-        ///1 2 1 2 4 2 0
-        ///1 2 1 3 2 1 0
-        ///1 2 1 3 4 2 0
-        ///1 2 2 1 2 2 0
-        ///1 2 2 2 3 2 0
-        ///1 2 2 2 4 1 0
-        ///1 2 2 2 4 2 0
-        ///1 2 2 3 2 2 0
-        ///1 2 2 3 3 1 0
-        ///1 2 2 3 3 2 0
-        ///1 3 1 1 2 1 0
-        ///1 3 1 1 4 1 0
-        ///1 3 1 2 2 1 0
-        ///1 3 1 2 4 1 0
-        ///1 3 1 3 1 2 1
-        ///1 3 1 3 2 2 0
-        ///1 3 1 3 3 1 0
-        ///1 3 1 3 4 1 0
-        ///1  [rest of string was truncated]&quot;;.
+        ///0 1 2 1 2 3 1
+        ///0 1 2 1 2 3 2
+        ///0 1 2 1 2 4 2
+        ///0 1 2 1 3 2 1
+        ///0 1 2 1 3 4 2
+        ///0 1 2 2 1 2 2
+        ///0 1 2 2 2 3 2
+        ///0 1 2 2 2 4 1
+        ///0 1 2 2 2 4 2
+        ///0 1 2 2 3 2 2
+        ///0 1 2 2 3 3 1
+        ///0 1 2 2 3 3 2
+        ///0 1 3 1 1 2 1
+        ///0 1 3 1 1 4 1
+        ///0 1 3 1 2 2 1
+        ///0 1 3 1 2 4 1
+        ///1 1 3 1 3 1 2
+        ///0 1 3 1 3 2 2
+        ///0 1 3 1 3 3 1
+        ///0 1 3 1 3 4 1
+        ///0  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string monks_1_train {
+        public static string monks_1_train {
             get {
                 return ResourceManager.GetString("monks_1_train", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1 1 1 1 1 1 0 
-        ///1 1 1 1 1 2 0 
-        ///1 1 1 1 2 1 0 
-        ///1 1 1 1 2 2 0 
-        ///1 1 1 1 3 1 0 
-        ///1 1 1 1 3 2 0 
-        ///1 1 1 1 4 1 0 
-        ///1 1 1 1 4 2 0 
-        ///1 1 1 2 1 1 0 
-        ///1 1 1 2 1 2 0 
-        ///1 1 1 2 2 1 0 
-        ///1 1 1 2 2 2 0 
-        ///1 1 1 2 3 1 0 
-        ///1 1 1 2 3 2 0 
-        ///1 1 1 2 4 1 0 
-        ///1 1 1 2 4 2 0 
-        ///1 1 1 3 1 1 0 
-        ///1 1 1 3 1 2 0 
-        ///1 1 1 3 2 1 0 
-        ///1 1 1 3 2 2 0 
-        ///1 1 1 3 3 1 0 
-        ///1 1 1 3 3 2 0 
-        ///1 1 1 3 4 1 0 
-        ///1 1 1 3 4 2 0 
-        ///1 1 2 1 1 1 0 
-        ///1 1 2 1 1 2 0 
-        ///1 1 2 1 2 1 0 
-        ///1 1 2 1 2 2 0 
-        ///1 1 2 1 3 1 0 
-        ///1 1 2 1 3 2 0 
-        ///1 1 2 1 4 1 0 
-        ///1 1 2 1 4 2 0 
-        /// [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to 0 1 1 1 1 1 1
+        ///0 1 1 1 1 1 2
+        ///0 1 1 1 1 2 1
+        ///0 1 1 1 1 2 2
+        ///0 1 1 1 1 3 1
+        ///0 1 1 1 1 3 2
+        ///0 1 1 1 1 4 1
+        ///0 1 1 1 1 4 2
+        ///0 1 1 1 2 1 1
+        ///0 1 1 1 2 1 2
+        ///0 1 1 1 2 2 1
+        ///0 1 1 1 2 2 2
+        ///0 1 1 1 2 3 1
+        ///0 1 1 1 2 3 2
+        ///0 1 1 1 2 4 1
+        ///0 1 1 1 2 4 2
+        ///0 1 1 1 3 1 1
+        ///0 1 1 1 3 1 2
+        ///0 1 1 1 3 2 1
+        ///0 1 1 1 3 2 2
+        ///0 1 1 1 3 3 1
+        ///0 1 1 1 3 3 2
+        ///0 1 1 1 3 4 1
+        ///0 1 1 1 3 4 2
+        ///0 1 1 2 1 1 1
+        ///0 1 1 2 1 1 2
+        ///0 1 1 2 1 2 1
+        ///0 1 1 2 1 2 2
+        ///0 1 1 2 1 3 1
+        ///0 1 1 2 1 3 2
+        ///0 1 1 2 1 4 1
+        ///0 1 1 2 1 4 2
+        ///0 1 1 2 2 1 1
+        ///0 1 1 2 2 1 2
+        ///0  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string monks_2_test {
+        public static string monks_2_test {
             get {
                 return ResourceManager.GetString("monks_2_test", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1 1 1 1 2 2 0
-        ///1 1 1 1 4 1 0
-        ///1 1 1 2 1 1 0
-        ///1 1 1 2 1 2 0
-        ///1 1 1 2 2 1 0
-        ///1 1 1 2 3 1 0
-        ///1 1 1 2 4 1 0
-        ///1 1 1 3 2 1 0
-        ///1 1 1 3 4 1 0
-        ///1 1 2 1 1 1 0
-        ///1 1 2 1 1 2 0
-        ///1 1 2 2 3 1 0
-        ///1 1 2 2 4 1 0
-        ///1 1 2 2 4 2 1
-        ///1 1 2 3 1 2 0
-        ///1 1 2 3 2 2 1
-        ///1 2 1 1 1 2 0
-        ///1 2 1 2 1 2 0
-        ///1 2 1 2 2 2 1
-        ///1 2 1 2 3 1 0
-        ///1 2 1 2 3 2 1
-        ///1 2 1 2 4 1 0
-        ///1 2 1 3 1 1 0
-        ///1 2 1 3 1 2 0
-        ///1 2 1 3 2 2 1
-        ///1 2 1 3 3 1 0
-        ///1 2 1 3 3 2 1
-        ///1 2 1 3 4 1 0
-        ///1 2 1 3 4 2 1
-        ///1 2 2 1 2 1 0
-        ///1 2 2 1 4 1 0
-        ///1 2 2 2 3 1 1
-        ///1 2 2 2 4 1 1
-        ///1 2 2 3 1 1 0
+        ///   Looks up a localized string similar to 0 1 1 1 1 2 2
+        ///0 1 1 1 1 4 1
+        ///0 1 1 1 2 1 1
+        ///0 1 1 1 2 1 2
+        ///0 1 1 1 2 2 1
+        ///0 1 1 1 2 3 1
+        ///0 1 1 1 2 4 1
+        ///0 1 1 1 3 2 1
+        ///0 1 1 1 3 4 1
+        ///0 1 1 2 1 1 1
+        ///0 1 1 2 1 1 2
+        ///0 1 1 2 2 3 1
+        ///0 1 1 2 2 4 1
+        ///1 1 1 2 2 4 2
+        ///0 1 1 2 3 1 2
+        ///1 1 1 2 3 2 2
+        ///0 1 2 1 1 1 2
+        ///0 1 2 1 2 1 2
+        ///1 1 2 1 2 2 2
+        ///0 1 2 1 2 3 1
+        ///1 1 2 1 2 3 2
+        ///0 1 2 1 2 4 1
+        ///0 1 2 1 3 1 1
+        ///0 1 2 1 3 1 2
+        ///1 1 2 1 3 2 2
+        ///0 1 2 1 3 3 1
+        ///1 1 2 1 3 3 2
+        ///0 1 2 1 3 4 1
+        ///1 1 2 1 3 4 2
+        ///0 1 2 2 1 2 1
+        ///0 1 2 2 1 4 1
+        ///1 1 2 2 2 3 1
+        ///1 1 2 2 2 4 1
+        ///0 1 2 2 3 1 1
         ///1  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string monks_2_train {
+        public static string monks_2_train {
             get {
                 return ResourceManager.GetString("monks_2_train", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1 1 1 1 1 1 1 
-        ///1 1 1 1 1 2 1 
-        ///1 1 1 1 2 1 1 
-        ///1 1 1 1 2 2 1 
-        ///1 1 1 1 3 1 1 
-        ///1 1 1 1 3 2 1 
-        ///1 1 1 1 4 1 0 
-        ///1 1 1 1 4 2 0 
-        ///1 1 1 2 1 1 1 
-        ///1 1 1 2 1 2 1 
-        ///1 1 1 2 2 1 1 
-        ///1 1 1 2 2 2 1 
-        ///1 1 1 2 3 1 1 
-        ///1 1 1 2 3 2 1 
-        ///1 1 1 2 4 1 0 
-        ///1 1 1 2 4 2 0 
-        ///1 1 1 3 1 1 1 
-        ///1 1 1 3 1 2 1 
-        ///1 1 1 3 2 1 1 
-        ///1 1 1 3 2 2 1 
-        ///1 1 1 3 3 1 1 
-        ///1 1 1 3 3 2 1 
-        ///1 1 1 3 4 1 0 
-        ///1 1 1 3 4 2 0 
-        ///1 1 2 1 1 1 1 
-        ///1 1 2 1 1 2 1 
-        ///1 1 2 1 2 1 1 
-        ///1 1 2 1 2 2 1 
-        ///1 1 2 1 3 1 1 
-        ///1 1 2 1 3 2 1 
-        ///1 1 2 1 4 1 0 
-        ///1 1 2 1 4 2 0 
-        /// [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to 1 1 1 1 1 1 1
+        ///1 1 1 1 1 1 2
+        ///1 1 1 1 1 2 1
+        ///1 1 1 1 1 2 2
+        ///1 1 1 1 1 3 1
+        ///1 1 1 1 1 3 2
+        ///0 1 1 1 1 4 1
+        ///0 1 1 1 1 4 2
+        ///1 1 1 1 2 1 1
+        ///1 1 1 1 2 1 2
+        ///1 1 1 1 2 2 1
+        ///1 1 1 1 2 2 2
+        ///1 1 1 1 2 3 1
+        ///1 1 1 1 2 3 2
+        ///0 1 1 1 2 4 1
+        ///0 1 1 1 2 4 2
+        ///1 1 1 1 3 1 1
+        ///1 1 1 1 3 1 2
+        ///1 1 1 1 3 2 1
+        ///1 1 1 1 3 2 2
+        ///1 1 1 1 3 3 1
+        ///1 1 1 1 3 3 2
+        ///0 1 1 1 3 4 1
+        ///0 1 1 1 3 4 2
+        ///1 1 1 2 1 1 1
+        ///1 1 1 2 1 1 2
+        ///1 1 1 2 1 2 1
+        ///1 1 1 2 1 2 2
+        ///1 1 1 2 1 3 1
+        ///1 1 1 2 1 3 2
+        ///0 1 1 2 1 4 1
+        ///0 1 1 2 1 4 2
+        ///1 1 1 2 2 1 1
+        ///1 1 1 2 2 1 2
+        ///1  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string monks_3_test {
+        public static string monks_3_test {
             get {
                 return ResourceManager.GetString("monks_3_test", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1 1 1 1 1 2 1 
-        ///1 1 1 1 2 1 1 
-        ///1 1 1 1 2 2 1 
-        ///1 1 1 1 3 1 0 
-        ///1 1 1 1 4 1 0 
-        ///1 1 1 2 1 1 1 
-        ///1 1 1 2 2 2 1 
-        ///1 1 1 2 4 2 0 
-        ///1 1 2 1 2 2 1 
-        ///1 1 2 1 4 2 0 
-        ///1 1 2 2 2 2 1 
-        ///1 1 2 2 4 1 0 
-        ///1 1 2 2 4 2 0 
-        ///1 1 2 3 1 1 1 
-        ///1 1 2 3 1 2 1 
-        ///1 1 2 3 3 1 1 
-        ///1 1 2 3 3 2 1 
-        ///1 2 1 1 3 1 1 
-        ///1 2 1 2 2 1 1 
-        ///1 2 1 2 2 2 1 
-        ///1 2 1 2 3 1 0 
-        ///1 2 1 3 1 1 1 
-        ///1 2 1 3 1 2 1 
-        ///1 2 1 3 2 1 1 
-        ///1 2 1 3 2 2 1 
-        ///1 2 1 3 3 2 1 
-        ///1 2 1 3 4 1 0 
-        ///1 2 2 1 3 1 1 
-        ///1 2 2 1 4 2 0 
-        ///1 2 2 2 1 1 1 
-        ///1 2 2 2 2 1 1 
-        ///1 2 2 2 2 2 1 
-        /// [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to 1 1 1 1 1 1 2
+        ///1 1 1 1 1 2 1
+        ///1 1 1 1 1 2 2
+        ///0 1 1 1 1 3 1
+        ///0 1 1 1 1 4 1
+        ///1 1 1 1 2 1 1
+        ///1 1 1 1 2 2 2
+        ///0 1 1 1 2 4 2
+        ///1 1 1 2 1 2 2
+        ///0 1 1 2 1 4 2
+        ///1 1 1 2 2 2 2
+        ///0 1 1 2 2 4 1
+        ///0 1 1 2 2 4 2
+        ///1 1 1 2 3 1 1
+        ///1 1 1 2 3 1 2
+        ///1 1 1 2 3 3 1
+        ///1 1 1 2 3 3 2
+        ///1 1 2 1 1 3 1
+        ///1 1 2 1 2 2 1
+        ///1 1 2 1 2 2 2
+        ///0 1 2 1 2 3 1
+        ///1 1 2 1 3 1 1
+        ///1 1 2 1 3 1 2
+        ///1 1 2 1 3 2 1
+        ///1 1 2 1 3 2 2
+        ///1 1 2 1 3 3 2
+        ///0 1 2 1 3 4 1
+        ///1 1 2 2 1 3 1
+        ///0 1 2 2 1 4 2
+        ///1 1 2 2 2 1 1
+        ///1 1 2 2 2 2 1
+        ///1 1 2 2 2 2 2
+        ///1 1 2 2 3 1 1
+        ///1 1 2 2 3 2 1
+        ///1  [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string monks_3_train {
+        public static string monks_3_train {
             get {
                 return ResourceManager.GetString("monks_3_train", resourceCulture);
             }

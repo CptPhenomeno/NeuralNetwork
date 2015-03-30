@@ -2,8 +2,9 @@
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 using MathNet.Numerics.LinearAlgebra;
@@ -58,7 +59,7 @@ namespace NeuralNetwork
             net.ComputeOutput(input4);
             Console.WriteLine("output4 {0} - atteso {1}", net.Output, 0);
 
-            BackPropagation bprop = new BackPropagation(net);
+            BackPropagationTrainer bprop = new BackPropagationTrainer(net);
             bprop.LearningRate = 0.7;
             bprop.Learn(inputs, outputs);
 
@@ -93,7 +94,9 @@ namespace NeuralNetwork
             int[] layerSize = { 3, 1 };
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
-            BackPropagation backProp = new BackPropagation(net, 0.3);            
+            BlockingCollection<string> data = new BlockingCollection<string>(100);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
+            backProp.EnableLogging(data);
 
             
             using (StringReader trainSet = new StringReader(Properties.Resources.monks_1_train))
@@ -110,25 +113,37 @@ namespace NeuralNetwork
 
                 backProp.MaxEpoch = 10000;
 
+                Thread consumer = new Thread(() =>
+                {
+                    while (!data.IsCompleted)
+                    {
+                        string[] s = data.Take().Split(':');
+                        string epoch = s[0];
+                        string error = s[1];
+                        Console.WriteLine("[LOG] => At epoch {0} the error is {1}", epoch, error);
+                    }
+                });
+                consumer.Start();
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 1");
                 Console.WriteLine("*******************");
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
 
                 Console.Write("Train the network...");
-                backProp.Learn(trainingExamples,expectedOutputs);
+                backProp.Learn(trainingExamples, expectedOutputs);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
 
                 Console.WriteLine("*******************");
+                backProp.DisableLogging();
             }
             #endregion
 
             #region Testing Monk Dataset 2
             layerSize = new[] { 3, 1 };            
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagation(net, 0.7, 0.3);
+            backProp = new BackPropagationTrainer(net, 0.7, 0.3);
 
 
             using (StringReader trainSet = new StringReader(Properties.Resources.monks_2_train))
@@ -163,7 +178,7 @@ namespace NeuralNetwork
             #region Testing Monk Dataset 3
             layerSize = new[] { 3, 1 };
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagation(net, 0.7, 0.3);
+            backProp = new BackPropagationTrainer(net, 0.7, 0.3);
 
 
             using (StringReader trainSet = new StringReader(Properties.Resources.monks_3_train))
