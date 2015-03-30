@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuralNetwork", "NeuralNetwork\NeuralNetwork.csproj", "{3C8C9A2A-7706-4601-8ADD-65F88F52CD74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataPlotter", "DataPlotter\DataPlotter.csproj", "{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{3C8C9A2A-7706-4601-8ADD-65F88F52CD74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C8C9A2A-7706-4601-8ADD-65F88F52CD74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C8C9A2A-7706-4601-8ADD-65F88F52CD74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
