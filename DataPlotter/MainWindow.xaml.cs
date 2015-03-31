@@ -41,14 +41,21 @@ namespace DataPlotter
 
             neuralNetErrorChart = new Chart();
 
+            Legend neuralNetChartLegend = new Legend();
+            neuralNetErrorChart.Legends.Add(neuralNetChartLegend);
+
             //Series is where the points are "stored"
             Series trainingErrorSeries = new Series();
             trainingErrorSeries.ChartType = SeriesChartType.Line;
             trainingErrorSeries.Color = Color.DodgerBlue;
+            trainingErrorSeries.IsVisibleInLegend = true;
+            trainingErrorSeries.LegendText = "Training Error";
 
             Series testErrorSeries = new Series();
             testErrorSeries.ChartType = SeriesChartType.Line;
             testErrorSeries.Color = Color.IndianRed;
+            testErrorSeries.IsVisibleInLegend = true;
+            testErrorSeries.LegendText = "Test Error";
 
             //Represent the drawing area
             ChartArea chartArea = new ChartArea();
@@ -58,6 +65,7 @@ namespace DataPlotter
             neuralNetErrorChart.ChartAreas.Add(chartArea);
             neuralNetErrorChart.Series.Add(trainingErrorSeries);
             neuralNetErrorChart.Series.Add(testErrorSeries);
+            
 
             winformhost.Child = neuralNetErrorChart;
 
@@ -110,7 +118,7 @@ namespace DataPlotter
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
             
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.7, 0.3);
             
 
             using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))
@@ -126,9 +134,10 @@ namespace DataPlotter
                 testOutput = testset.Item2;
 
                 backProp.MaxEpoch = 10000;
+                backProp.BatchSize = 1;
 
                 backProp.EnableLogging(data);
-                backProp.Learn(trainingExamples, expectedOutputs);
+                backProp.Learn(trainingExamples, expectedOutputs, testInput, testOutput);
 
             }
         }
