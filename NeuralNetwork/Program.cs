@@ -96,7 +96,6 @@ namespace NeuralNetwork
             NeuralNet net = new NeuralNet(17, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
-            backProp.EnableLogging(data);
 
             
             using (StringReader trainSet = new StringReader(Properties.Resources.monks_1_train))
@@ -112,18 +111,8 @@ namespace NeuralNetwork
                 testOutput = testset.Item2;
 
                 backProp.MaxEpoch = 10000;
+                backProp.BatchSize = 1;
 
-                Thread consumer = new Thread(() =>
-                {
-                    while (!data.IsCompleted)
-                    {
-                        string[] s = data.Take().Split(':');
-                        string epoch = s[0];
-                        string error = s[1];
-                        Console.WriteLine("[LOG] => At epoch {0} the error is {1}", epoch, error);
-                    }
-                });
-                consumer.Start();
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 1");
                 Console.WriteLine("*******************");
@@ -136,7 +125,6 @@ namespace NeuralNetwork
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
 
                 Console.WriteLine("*******************");
-                backProp.DisableLogging();
             }
             #endregion
 
@@ -159,6 +147,7 @@ namespace NeuralNetwork
                 testOutput = testset.Item2;
 
                 backProp.MaxEpoch = 10000;
+                backProp.BatchSize = 1;
 
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 2");
@@ -192,6 +181,9 @@ namespace NeuralNetwork
 
                 testInput = testset.Item1;
                 testOutput = testset.Item2;
+
+                backProp.MaxEpoch = 10000;
+                backProp.BatchSize = 1;
 
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 3");

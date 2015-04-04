@@ -75,8 +75,12 @@ namespace DataPlotter
             {
                 while (!neuralNetErrorChart.IsDisposed)
                 {
-                    neuralNetErrorChart.Invoke(addDataFunction);
-                    Thread.Sleep(100);
+                    try
+                    {
+                        neuralNetErrorChart.Invoke(addDataFunction);
+                        Thread.Sleep(100);
+                    }
+                    catch (InvalidOperationException) { }
                 }
             });
 
@@ -118,7 +122,7 @@ namespace DataPlotter
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
             
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.7, 0.3);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.2, 0.5);
             
 
             using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))

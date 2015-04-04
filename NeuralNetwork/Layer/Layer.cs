@@ -5,7 +5,6 @@
     using MathNet.Numerics.Distributions;
 
     using NeuralNetwork.Activation;
-    
     /*
     delegate double ActivationFunction(double x);
     delegate double ActivationFunctionDerivative(double x);

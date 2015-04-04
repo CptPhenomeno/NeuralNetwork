@@ -1,6 +1,8 @@
 ﻿namespace NeuralNetwork.Learning
 {
     using NeuralNetwork.Network;
+    using NeuralNetwork.Utils.Extensions;
+
     using MathNet.Numerics.LinearAlgebra;
     using MathNet.Numerics.LinearAlgebra.Double;
     
@@ -91,6 +93,9 @@
 
                     errorOnEpochs.Add(log);
                 }
+
+                //Shuffle the examples
+                ArrayExtensions.TwinShuffle(inputs, expectedOutputs);
                     
             } while (trainingError > MaxError && epoch < MaxEpoch);
             

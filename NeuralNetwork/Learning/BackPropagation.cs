@@ -96,10 +96,13 @@
 
         public void UpdateNetwork()
         {
-            foreach (Matrix<double> m in weightsUpdates)
-                m.Divide(batchSize, m);
-            foreach (Vector<double> b in biasesUpdates)
-                b.Divide(batchSize, b);
+            if (batchSize > 1)
+            {
+                foreach (Matrix<double> m in weightsUpdates)
+                    m.Divide(batchSize, m);
+                foreach (Vector<double> b in biasesUpdates)
+                    b.Divide(batchSize, b);
+            }
 
             net.UpdateNetwork(weightsUpdates, biasesUpdates);
             foreach (Matrix<double> m in weightsUpdates)
