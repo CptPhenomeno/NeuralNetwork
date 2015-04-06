@@ -2,6 +2,9 @@
 {
     using System;
 
+    using MathNet.Numerics.LinearAlgebra;
+    using MathNet.Numerics.LinearAlgebra.Double;
+
     public static class ArrayExtensions
     {
         public static string Print(this Array array)
@@ -56,6 +59,26 @@
                 arr1.Swap(r, pos);
                 arr2.Swap(r, pos);
             }
+        }
+    }
+
+    public static class MatrixExtension
+    {
+        public static string Print(this Matrix<double> mat)
+        {
+            string str = "";
+            int rows = mat.RowCount;
+            int cols = mat.ColumnCount;
+            for (int rowIndex = 0; rowIndex < rows; rowIndex++)
+            {
+                for (int colIndex = 0; colIndex < cols; colIndex++)
+                {
+                    str += mat.At(rowIndex, colIndex);
+                    str += "\t";
+                }
+                str += "\n";
+            }
+            return str;
         }
     }
 

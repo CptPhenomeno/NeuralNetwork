@@ -21,7 +21,8 @@
         public double Derivative(double x)
         {
             double y = Function(x);
-            return (beta / alpha) * (alpha - y) * (alpha + y);
+            //return (beta / alpha) * (alpha - y) * (alpha + y);
+            return 1.0 - (y * y);
         }
     }
 }

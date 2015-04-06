@@ -69,7 +69,8 @@ namespace DataPlotter
 
             winformhost.Child = neuralNetErrorChart;
 
-            Thread producer = new Thread(new ThreadStart(BackProp));
+            Thread producer = new Thread(new ThreadStart(TestMonk));
+            //Thread producer = new Thread(new ThreadStart(TestAA1Exam));
 
             Thread addData = new Thread(() =>
             {
@@ -107,44 +108,7 @@ namespace DataPlotter
             }
         }
 
-        private void BackProp()
-        {
-            Tuple<double[][], double[][]> dataset;
-            Tuple<double[][], double[][]> testset;
-
-            double[][] trainingExamples;
-            double[][] expectedOutputs;
-
-            double[][] testInput;
-            double[][] testOutput;
-
-            int[] layerSize = { 3, 1 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
-            NeuralNet net = new NeuralNet(17, layerSize, functions);
-            
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.2, 0.5);
-            
-
-            using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))
-            using (StringReader testSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_test))
-            {
-                dataset = ReadDataset(trainSet);
-                testset = ReadDataset(testSet);
-
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
-
-                backProp.MaxEpoch = 10000;
-                backProp.BatchSize = 1;
-
-                backProp.EnableLogging(data);
-                backProp.Learn(trainingExamples, expectedOutputs, testInput, testOutput);
-
-            }
-        }
+        #region Monk Test
 
         static double[] Encode(int value, byte encode)
         {
@@ -222,6 +186,155 @@ namespace DataPlotter
                 return null;
             }
         }
+
+        private void TestMonk()
+        {
+            Tuple<double[][], double[][]> dataset;
+            Tuple<double[][], double[][]> testset;
+
+            double[][] trainingExamples;
+            double[][] expectedOutputs;
+
+            double[][] testInput;
+            double[][] testOutput;
+
+            int[] layerSize = { 3, 1 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            NeuralNet net = new NeuralNet(17, layerSize, functions);
+
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.2, 0.5);
+
+
+            using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))
+            using (StringReader testSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_test))
+            {
+                dataset = ReadDataset(trainSet);
+                testset = ReadDataset(testSet);
+
+                trainingExamples = dataset.Item1;
+                expectedOutputs = dataset.Item2;
+
+                testInput = testset.Item1;
+                testOutput = testset.Item2;
+
+                backProp.MaxEpoch = 10000;
+                backProp.BatchSize = 1;
+
+                backProp.EnableLogging(data);
+                backProp.Learn(trainingExamples, expectedOutputs, testInput, testOutput);
+
+            }
+        }
+
+        #endregion
+
+        #region AA1 Exam Test
+
+        static Tuple<double[][], double[][]> ReadExamDataset(StringReader stream, string outputFile = null)
+        {
+            try
+            {
+                string trainingExample = stream.ReadLine();
+                trainingExample.TrimEnd();
+                char[] separator = { ',' };
+
+                List<double[]> inputs = new List<double[]>();
+                List<double[]> outputs = new List<double[]>();
+                int c = 0;
+                StreamWriter writer = null;
+
+
+                if (outputFile != null)
+                    writer = new StreamWriter(new FileStream(outputFile, FileMode.CreateNew));
+
+                while (trainingExample != null)
+                {
+                    ++c;
+                    string[] strings = trainingExample.Split(separator);
+                    System.Globalization.CultureInfo us = new System.Globalization.CultureInfo("en-us");
+                    double[] output = { Double.Parse(strings[strings.Length - 2], us), 
+                                        Double.Parse(strings[strings.Length - 1], us) };
+                    List<string> stringList = new List<string>(strings);
+                    strings = stringList.GetRange(1, strings.Length - 3).ToArray();
+                    double[] input = new double[strings.Length];
+
+                    for (int index = 0; index < input.Length; index++)
+                        input[index] = Double.Parse(strings[index], us);
+
+                    inputs.Add(input);
+                    outputs.Add(output);
+
+                    if (writer != null)
+                    {
+                        foreach (double d in input)
+                            writer.Write(d.ToString() + " ");
+                        foreach (double d in output)
+                            writer.Write(d.ToString() + " ");
+                        writer.WriteLine();
+                    }
+
+                    trainingExample = stream.ReadLine();
+                }
+
+                if (writer != null)
+                    writer.Close();
+
+                double[][] inputList = inputs.ToArray();
+                double[][] outputList = outputs.ToArray();
+
+                return new Tuple<double[][], double[][]>(inputList, outputList);
+
+
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
+        private static void TestAA1Exam()
+        {
+            Tuple<double[][], double[][]> dataset;
+            Tuple<double[][], double[][]> testset;
+
+            double[][] trainingExamples;
+            double[][] expectedOutputs;
+
+            double[][] testInput;
+            double[][] testOutput;
+
+            #region Testing Monk Dataset 1
+            int[] layerSize = { 3, 2 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            NeuralNet net = new NeuralNet(10, layerSize, functions);
+            BlockingCollection<string> data = new BlockingCollection<string>(100);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
+
+
+            using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.AA1_trainset))
+            using (StringReader testSet = new StringReader(NeuralNetwork.Properties.Resources.AA1_testset))
+            {
+                dataset = ReadExamDataset(trainSet);
+                testset = ReadExamDataset(testSet);
+
+                trainingExamples = dataset.Item1;
+                expectedOutputs = dataset.Item2;
+
+                testInput = testset.Item1;
+                testOutput = testset.Item2;
+
+                backProp.MaxEpoch = 1000;
+                backProp.BatchSize = 1;
+
+                backProp.EnableLogging(data);
+                backProp.Learn(trainingExamples, expectedOutputs, testInput, testOutput);
+
+            }
+            #endregion
+        }
+
+        #endregion
 
     }
 }
