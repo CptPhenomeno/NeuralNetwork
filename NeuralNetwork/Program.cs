@@ -446,10 +446,132 @@ namespace NeuralNetwork
 
         #endregion
 
+        #region Sin regression test
+
+        static Tuple<double[][], double[][]> ReadSinDataset(StringReader stream, string outputFile = null)
+        {
+            try
+            {
+                string trainingExample = stream.ReadLine();
+                trainingExample.TrimEnd();
+                char[] separator = { ',' };
+
+                List<double[]> inputs = new List<double[]>();
+                List<double[]> outputs = new List<double[]>();
+                int c = 0;
+                StreamWriter writer = null;
+
+
+                if (outputFile != null)
+                    writer = new StreamWriter(new FileStream(outputFile, FileMode.CreateNew));
+
+                while (trainingExample != null)
+                {
+                    ++c;
+                    string[] strings = trainingExample.Split(separator);
+                    System.Globalization.CultureInfo us = new System.Globalization.CultureInfo("en-us");
+                    double[] output = { Double.Parse(strings[1], us) };
+                    double[] input = { Double.Parse(strings[0], us) };
+
+                    inputs.Add(input);
+                    outputs.Add(output);
+
+                    if (writer != null)
+                    {
+                        foreach (double d in input)
+                            writer.Write(d.ToString() + " ");
+                        foreach (double d in output)
+                            writer.Write(d.ToString() + " ");
+                        writer.WriteLine();
+                    }
+
+                    trainingExample = stream.ReadLine();
+                }
+
+                if (writer != null)
+                    writer.Close();
+
+                double[][] inputList = inputs.ToArray();
+                double[][] outputList = outputs.ToArray();
+
+                return new Tuple<double[][], double[][]>(inputList, outputList);
+
+
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
+        private static void TestSinRegression()
+        {
+            Tuple<double[][], double[][]> dataset;
+            Tuple<double[][], double[][]> testset;
+
+            double[][] trainingExamples;
+            double[][] expectedOutputs;
+
+            double[][] testInput;
+            double[][] testOutput;
+
+            #region Testing sin regression
+            int[] layerSize = { 5, 1 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            NeuralNet net = new NeuralNet(1, layerSize, functions);
+            BlockingCollection<string> data = new BlockingCollection<string>(100);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.5, 0.3);
+
+
+            using (StringReader trainSet = new StringReader(Properties.Resources.sinData))
+            using (StringReader testSet = new StringReader(Properties.Resources.sinTest))
+            {
+                dataset = ReadSinDataset(trainSet);
+                testset = ReadSinDataset(testSet);
+
+                trainingExamples = dataset.Item1;
+                expectedOutputs = dataset.Item2;
+
+                testInput = testset.Item1;
+                testOutput = testset.Item2;
+
+                backProp.MaxEpoch = 1000;
+                backProp.BatchSize = 1;
+
+                Console.WriteLine("*******************");
+                Console.WriteLine("Sin Regression Test");
+                Console.WriteLine("*******************");
+                Console.Write("Train the network...");
+                backProp.Learn(trainingExamples, expectedOutputs);
+                Console.WriteLine("done!");
+                
+                ShowSinRegressionResults(net, testInput, testOutput);
+
+                Console.WriteLine("*******************");
+            }
+            #endregion
+        }
+
+        private static void ShowSinRegressionResults(NeuralNet net, double[][] input, double[][] output)
+        {
+            int numOfExamples = input.Length;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                net.ComputeOutput(input[i]);
+                double netOutput = net.Output.At(0);
+                Console.WriteLine(netOutput);
+            }
+        }
+
+        #endregion
+
         static void Main()
         {
             //TestMonk();
-            TestAA1Exam();
+            //TestAA1Exam();
+            TestSinRegression();
         }
 
     }

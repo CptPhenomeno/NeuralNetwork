@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="Activation\HyperbolicTangentFunction.cs" />
     <Compile Include="Activation\IActivationFunction.cs" />
+    <Compile Include="Activation\LinearFunction.cs" />
     <Compile Include="Activation\SigmoidFunction.cs" />
     <Compile Include="Activation\Threshold.cs" />
     <Compile Include="Learning\BackPropagation.cs" />
@@ -102,6 +103,8 @@
     <Content Include="Dataset\monks-2-train.txt" />
     <Content Include="Dataset\monks-3-test.txt" />
     <Content Include="Dataset\monks-3-train.txt" />
+    <None Include="Dataset\sinTest.txt" />
+    <None Include="Dataset\sinData.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -93,7 +93,7 @@
 
                     errorOnEpochs.Add(log);
                 }
-                Console.WriteLine("Error at iteration {0}: {1}", epoch, trainingError);
+                //Console.WriteLine("Error at iteration {0}: {1}", epoch, trainingError);
                 //Shuffle the examples
                 ArrayExtensions.TwinShuffle(inputs, expectedOutputs);
                     

@@ -37,7 +37,7 @@ namespace DataPlotter
 
         private void AddChartToMainWindow(object sender, EventArgs e)
         {
-             data = new BlockingCollection<string>(100);
+            data = new BlockingCollection<string>(100);
 
             neuralNetErrorChart = new Chart();
 
@@ -70,7 +70,7 @@ namespace DataPlotter
             winformhost.Child = neuralNetErrorChart;
 
             Thread producer = new Thread(new ThreadStart(TestMonk));
-            //Thread producer = new Thread(new ThreadStart(TestAA1Exam));
+            //Thread producer = new Thread(new ThreadStart(TestAA1Exam));          
 
             Thread addData = new Thread(() =>
             {
@@ -217,7 +217,7 @@ namespace DataPlotter
                 testInput = testset.Item1;
                 testOutput = testset.Item2;
 
-                backProp.MaxEpoch = 10000;
+                backProp.MaxEpoch = 1000;
                 backProp.BatchSize = 1;
 
                 backProp.EnableLogging(data);
