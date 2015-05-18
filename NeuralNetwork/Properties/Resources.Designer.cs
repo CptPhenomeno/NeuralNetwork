@@ -345,6 +345,20 @@ namespace NeuralNetwork.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to mpg (n),cylinders (n),displacement (n),horsepower (n),weight (n),acceleration (n),year (n),origin (n), name (s)
+        ///18.000000,8.000000,307.000000,130.000000,3504.000000,12.000000,70.000000,1.000000
+        ///15.000000,8.000000,350.000000,165.000000,3693.000000,11.500000,70.000000,1.000000
+        ///18.000000,8.000000,318.000000,150.000000,3436.000000,11.000000,70.000000,1.000000
+        ///16.000000,8.000000,304.000000,150.000000,3433.000000,12.000000,70.000000,1.000000
+        ///17.000000,8.000000,302.000000,140.000000,3449.000000,10.500000,70.000000 [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string mpg {
+            get {
+                return ResourceManager.GetString("mpg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 0.00,0.00
         ///0.10,0.01
         ///0.20,0.02

@@ -18,8 +18,6 @@
         private int batchSize;
         private double learningRate;
         private double momentum;
-        private double maxError;
-        private int maxEpoch;
 
         public BackPropagation(NeuralNet net, double learningRate, double momentum, int batchSize)
         {
@@ -38,6 +36,7 @@
             for (int next = start; next < start + batchSize; next++)
             {
                 Vector<double> input = inputs[next];
+                net.Input = input;
                 net.ComputeOutput(input);
                 //Vector with error for each output of the network
                 Vector<double> netError = expectedOutputs[next] - net.Output;
@@ -60,7 +59,11 @@
             //Update value for output biases
             biasesUpdates[outputLayerIndex].Add(deltas[outputLayerIndex].Multiply(learningRate), biasesUpdates[outputLayerIndex]);
 
-            Vector<double> outputLayerInput = net[outputLayerIndex - 1].Output;
+            Vector<double> outputLayerInput = null;
+            if (net.NumberOfLayers > 1)
+                outputLayerInput = net[outputLayerIndex - 1].Output;
+            else if (net.NumberOfLayers == 1)
+                outputLayerInput = net.Input;
             
             //Update value for output weights
             //I have some doubt here...
@@ -79,6 +82,7 @@
             {                
                 //The next layer support for update
                 Vector<double> sigma = net[actualLayerIndex + 1].Weights.Transpose().Multiply(deltas[actualLayerIndex + 1]);
+                //Vector<double> sigma = weightsUpdates[actualLayerIndex + 1].Transpose().Multiply(deltas[actualLayerIndex + 1]);
                 deltas[actualLayerIndex] = sigma.PointwiseMultiply(net[actualLayerIndex].LocalFieldDifferentiated);
 
                 biasesUpdates[actualLayerIndex].Add(deltas[actualLayerIndex].Multiply(learningRate), biasesUpdates[actualLayerIndex]);

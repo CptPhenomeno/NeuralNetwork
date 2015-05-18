@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
-using System.Windows.Forms;
 
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using MathNet.Numerics.Statistics;
 
 using NeuralNetwork.Network;
 using NeuralNetwork.Learning;
 using NeuralNetwork.Activation;
+using NeuralNetwork.Utils.Extensions;
 
 namespace NeuralNetwork
 {
@@ -446,9 +447,9 @@ namespace NeuralNetwork
 
         #endregion
 
-        #region Sin regression test
+        #region Regression test
 
-        static Tuple<double[][], double[][]> ReadSinDataset(StringReader stream, string outputFile = null)
+        static Tuple<double[][], double[][]> ReadMPGDataset(StringReader stream, string outputFile = null)
         {
             try
             {
@@ -456,7 +457,8 @@ namespace NeuralNetwork
                 trainingExample.TrimEnd();
                 char[] separator = { ',' };
 
-                List<double[]> inputs = new List<double[]>();
+                List<double> inputs = new List<double>();
+                List<double[]> inputsArray = new List<double[]>();
                 List<double[]> outputs = new List<double[]>();
                 int c = 0;
                 StreamWriter writer = null;
@@ -470,28 +472,28 @@ namespace NeuralNetwork
                     ++c;
                     string[] strings = trainingExample.Split(separator);
                     System.Globalization.CultureInfo us = new System.Globalization.CultureInfo("en-us");
-                    double[] output = { Double.Parse(strings[1], us) };
-                    double[] input = { Double.Parse(strings[0], us) };
+                    double[] output = { Double.Parse(strings[0], us) };
+                    double input = Double.Parse(strings[3], us);
 
                     inputs.Add(input);
                     outputs.Add(output);
 
-                    if (writer != null)
-                    {
-                        foreach (double d in input)
-                            writer.Write(d.ToString() + " ");
-                        foreach (double d in output)
-                            writer.Write(d.ToString() + " ");
-                        writer.WriteLine();
-                    }
-
                     trainingExample = stream.ReadLine();
                 }
 
-                if (writer != null)
-                    writer.Close();
+                //double mean = Statistics.Mean(inputs);
+                //double std = Statistics.StandardDeviation(inputs);
 
-                double[][] inputList = inputs.ToArray();
+                //foreach (double input in inputs)
+                //    inputsArray.Add(new double[] { (input - mean) / std });
+
+                double max = inputs.Max();
+                double min = inputs.Min();
+                double diff = max - min;
+
+                inputs = inputs.Select((x) => (x - min) / diff).ToList();
+
+                double[][] inputList = inputsArray.ToArray();
                 double[][] outputList = outputs.ToArray();
 
                 return new Tuple<double[][], double[][]>(inputList, outputList);
@@ -505,73 +507,354 @@ namespace NeuralNetwork
             }
         }
 
-        private static void TestSinRegression()
+        private static void TestRegression()
         {
             Tuple<double[][], double[][]> dataset;
-            Tuple<double[][], double[][]> testset;
 
-            double[][] trainingExamples;
-            double[][] expectedOutputs;
+            double[][] trainingExamples = { new double[] {0.0000000e+00},
+                                            new double[] {4.9811206e-02},
+                                            new double[] {9.9622411e-02},
+                                            new double[] {1.5496820e-01},
+                                            new double[] {2.1031398e-01},
+                                            new double[] {2.6565976e-01},
+                                            new double[] {3.2100555e-01},
+                                            new double[] {3.8250086e-01},
+                                            new double[] {4.4399618e-01},
+                                            new double[] {5.1232431e-01},
+                                            new double[] {5.8065244e-01},
+                                            new double[] {6.5657258e-01},
+                                            new double[] {7.4092829e-01},
+                                            new double[] {8.3465687e-01},
+                                            new double[] {9.3879972e-01},
+                                            new double[] {1.0673712e+00},
+                                            new double[] {1.2102283e+00},
+                                            new double[] {1.3689585e+00},
+                                            new double[] {1.5453253e+00},
+                                            new double[] {1.7040555e+00},
+                                            new double[] {1.8469126e+00},
+                                            new double[] {1.9897697e+00},
+                                            new double[] {2.1326269e+00},
+                                            new double[] {2.2754840e+00},
+                                            new double[] {2.4183412e+00},
+                                            new double[] {2.5611983e+00},
+                                            new double[] {2.7040555e+00},
+                                            new double[] {2.8469126e+00},
+                                            new double[] {2.9897697e+00},
+                                            new double[] {3.1326269e+00},
+                                            new double[] {3.2754840e+00},
+                                            new double[] {3.4342142e+00},
+                                            new double[] {3.5929443e+00},
+                                            new double[] {3.7693112e+00},
+                                            new double[] {3.9456780e+00},
+                                            new double[] {4.1220449e+00},
+                                            new double[] {4.2984117e+00},
+                                            new double[] {4.4747786e+00},
+                                            new double[] {4.6511454e+00},
+                                            new double[] {4.8275122e+00},
+                                            new double[] {4.9862424e+00},
+                                            new double[] {5.1449726e+00},
+                                            new double[] {5.3037027e+00},
+                                            new double[] {5.4465599e+00},
+                                            new double[] {5.5894170e+00},
+                                            new double[] {5.7322741e+00},
+                                            new double[] {5.8910043e+00},
+                                            new double[] {6.0673712e+00},
+                                            new double[] {6.2437380e+00},
+                                            new double[] {6.3865951e+00},
+                                            new double[] {6.5294523e+00},
+                                            new double[] {6.6451666e+00},
+                                            new double[] {6.7388951e+00},
+                                            new double[] {6.8232509e+00},
+                                            new double[] {6.8991710e+00},
+                                            new double[] {6.9674991e+00},
+                                            new double[] {7.0289944e+00},
+                                            new double[] {7.0904898e+00},
+                                            new double[] {7.1458355e+00},
+                                            new double[] {7.2011813e+00},
+                                            new double[] {7.2565271e+00},
+                                            new double[] {7.3118729e+00},
+                                            new double[] {7.3616841e+00},
+                                            new double[] {7.4114953e+00},
+                                            new double[] {7.4613065e+00},
+                                            new double[] {7.5166523e+00},
+                                            new double[] {7.5719981e+00},
+                                            new double[] {7.6273439e+00},
+                                            new double[] {7.6826896e+00},
+                                            new double[] {7.7441850e+00},
+                                            new double[] {7.8056803e+00},
+                                            new double[] {7.8740084e+00},
+                                            new double[] {7.9499285e+00},
+                                            new double[] {8.0342843e+00},
+                                            new double[] {8.1384271e+00},
+                                            new double[] {8.2812843e+00},
+                                            new double[] {8.4576511e+00},
+                                            new double[] {8.6005082e+00},
+                                            new double[] {8.7162225e+00},
+                                            new double[] {8.8099511e+00},
+                                            new double[] {8.8943068e+00},
+                                            new double[] {8.9702270e+00},
+                                            new double[] {9.0461471e+00},
+                                            new double[] {9.1144752e+00},
+                                            new double[] {9.1828034e+00},
+                                            new double[] {9.2511315e+00},
+                                            new double[] {9.3194596e+00},
+                                            new double[] {9.3877877e+00},
+                                            new double[] {9.4637079e+00},
+                                            new double[] {9.5396280e+00},
+                                            new double[] {9.6239837e+00},
+                                            new double[] {9.7177123e+00},
+                                            new double[] {9.8334266e+00},
+                                            new double[] {9.9762837e+00} };
 
-            double[][] testInput;
-            double[][] testOutput;
+            double[][] expectedOutputs = {  new double[] {5.0472287e+00},
+                                            new double[] {5.3578233e+00},
+                                            new double[] {5.6631773e+00},
+                                            new double[] {5.9954650e+00},
+                                            new double[] {6.3194714e+00},
+                                            new double[] {6.6342607e+00},
+                                            new double[] {6.9389189e+00},
+                                            new double[] {7.2644727e+00},
+                                            new double[] {7.5752742e+00},
+                                            new double[] {7.9019937e+00},
+                                            new double[] {8.2078077e+00},
+                                            new double[] {8.5216219e+00},
+                                            new double[] {8.8365981e+00},
+                                            new double[] {9.1432246e+00},
+                                            new double[] {9.4288621e+00},
+                                            new double[] {9.7006661e+00},
+                                            new double[] {9.8995281e+00},
+                                            new double[] {1.0000000e+01},
+                                            new double[] {9.9785747e+00},
+                                            new double[] {9.8589252e+00},
+                                            new double[] {9.6875629e+00},
+                                            new double[] {9.4722185e+00},
+                                            new double[] {9.2283179e+00},
+                                            new double[] {8.9700894e+00},
+                                            new double[] {8.7099098e+00},
+                                            new double[] {8.4578833e+00},
+                                            new double[] {8.2216585e+00},
+                                            new double[] {8.0064628e+00},
+                                            new double[] {7.8153166e+00},
+                                            new double[] {7.6493772e+00},
+                                            new double[] {7.5083595e+00},
+                                            new double[] {7.3793283e+00},
+                                            new double[] {7.2769567e+00},
+                                            new double[] {7.1912086e+00},
+                                            new double[] {7.1319242e+00},
+                                            new double[] {7.0971852e+00},
+                                            new double[] {7.0866290e+00},
+                                            new double[] {7.1014417e+00},
+                                            new double[] {7.1439651e+00},
+                                            new double[] {7.2168785e+00},
+                                            new double[] {7.3099832e+00},
+                                            new double[] {7.4287298e+00},
+                                            new double[] {7.5698775e+00},
+                                            new double[] {7.7102248e+00},
+                                            new double[] {7.8543608e+00},
+                                            new double[] {7.9901367e+00},
+                                            new double[] {8.1120287e+00},
+                                            new double[] {8.1811075e+00},
+                                            new double[] {8.1424295e+00},
+                                            new double[] {8.0056086e+00},
+                                            new double[] {7.7555710e+00},
+                                            new double[] {7.4617659e+00},
+                                            new double[] {7.1617022e+00},
+                                            new double[] {6.8444896e+00},
+                                            new double[] {6.5222058e+00},
+                                            new double[] {6.2041410e+00},
+                                            new double[] {5.8970102e+00},
+                                            new double[] {5.5721082e+00},
+                                            new double[] {5.2663811e+00},
+                                            new double[] {4.9499871e+00},
+                                            new double[] {4.6249993e+00},
+                                            new double[] {4.2936579e+00},
+                                            new double[] {3.9919847e+00},
+                                            new double[] {3.6889091e+00},
+                                            new double[] {3.3863034e+00},
+                                            new double[] {3.0529487e+00},
+                                            new double[] {2.7251731e+00},
+                                            new double[] {2.4056096e+00},
+                                            new double[] {2.0968480e+00},
+                                            new double[] {1.7694999e+00},
+                                            new double[] {1.4618688e+00},
+                                            new double[] {1.1468958e+00},
+                                            new double[] {8.3451213e-01},
+                                            new double[] {5.3908804e-01},
+                                            new double[] {2.5639799e-01},
+                                            new double[] {2.6310092e-02},
+                                            new double[] {0.0000000e+00},
+                                            new double[] {1.7872281e-01},
+                                            new double[] {4.4125718e-01},
+                                            new double[] {7.2073056e-01},
+                                            new double[] {1.0153623e+00},
+                                            new double[] {1.3092107e+00},
+                                            new double[] {1.6243823e+00},
+                                            new double[] {1.9214258e+00},
+                                            new double[] {2.2266224e+00},
+                                            new double[] {2.5355511e+00},
+                                            new double[] {2.8437744e+00},
+                                            new double[] {3.1468653e+00},
+                                            new double[] {3.4722659e+00},
+                                            new double[] {3.7799306e+00},
+                                            new double[] {4.0938085e+00},
+                                            new double[] {4.3986380e+00},
+                                            new double[] {4.6956321e+00},
+                                            new double[] {4.9132400e+00} };
+            
 
-            #region Testing sin regression
-            int[] layerSize = { 5, 1 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+
+            int[] layerSize = { 10, 1 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new LinearFunction() };
             NeuralNet net = new NeuralNet(1, layerSize, functions);
-            BlockingCollection<string> data = new BlockingCollection<string>(100);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.5, 0.3);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0, 0);
 
 
-            using (StringReader trainSet = new StringReader(Properties.Resources.sinData))
-            using (StringReader testSet = new StringReader(Properties.Resources.sinTest))
-            {
-                dataset = ReadSinDataset(trainSet);
-                testset = ReadSinDataset(testSet);
+            backProp.MaxEpoch = 10000;
+            backProp.BatchSize = 1;
 
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
-
-                backProp.MaxEpoch = 1000;
-                backProp.BatchSize = 1;
-
-                Console.WriteLine("*******************");
-                Console.WriteLine("Sin Regression Test");
-                Console.WriteLine("*******************");
-                Console.Write("Train the network...");
-                backProp.Learn(trainingExamples, expectedOutputs);
-                Console.WriteLine("done!");
                 
-                ShowSinRegressionResults(net, testInput, testOutput);
+            backProp.Learn(trainingExamples, expectedOutputs);
 
-                Console.WriteLine("*******************");
-            }
-            #endregion
+            ShowRegressionResults(net, trainingExamples);
+            
         }
 
-        private static void ShowSinRegressionResults(NeuralNet net, double[][] input, double[][] output)
+        private static void ShowRegressionResults(NeuralNet net, double[][] examples)
         {
-            int numOfExamples = input.Length;
+            System.Globalization.CultureInfo us = new System.Globalization.CultureInfo("en-us");
+            StreamWriter writer = new StreamWriter(new FileStream(@"C:\Users\Gabriele\neural-net\matlab\output_mynet.txt", FileMode.Create));
 
-            for (int i = 0; i < input.Length; i++)
+            for (int i = 0; i < examples.Length; i++)
             {
-                net.ComputeOutput(input[i]);
-                double netOutput = net.Output.At(0);
-                Console.WriteLine(netOutput);
+                net.ComputeOutput(examples[i]);
+                writer.WriteLine(net.Output.At(0).ToString(us));
             }
+
+            writer.Close();
         }
 
         #endregion
+
+        private static Tuple<double[][], double[][]> ReadSinData(StreamReader stream)
+        {
+            try
+            {
+                string trainingExample = stream.ReadLine();
+                trainingExample = trainingExample.Trim();
+                char[] separator = { ',' };
+
+                List<double> inputs = new List<double>();
+                List<double[]> inputsArray = new List<double[]>();
+                List<double[]> outputs = new List<double[]>();
+                int c = 0;
+
+
+                while (trainingExample != null)
+                {
+                    ++c;
+                    string[] strings = trainingExample.Split(separator);
+                    System.Globalization.CultureInfo us = new System.Globalization.CultureInfo("en-us");
+                    double[] output = { Double.Parse(strings[1], System.Globalization.CultureInfo.InvariantCulture) };
+                    double input = Double.Parse(strings[0], us);
+
+                    inputs.Add(input);
+                    outputs.Add(output);
+
+                    trainingExample = stream.ReadLine();
+                }
+
+                double mean = Statistics.Mean(inputs);
+                double std = Statistics.StandardDeviation(inputs);
+
+                int newMin = -1;
+                int newMax = 1;
+                double max = inputs.Max();
+                double min = inputs.Min();
+                double diff = max - min;
+
+                //inputs = inputs.Select((x) => ((newMax - newMin) * (x - min)) / (max - min)).ToList();
+                
+                foreach (double input in inputs)
+                    inputsArray.Add(new double[] { input });
+
+                double[][] inputList = inputsArray.ToArray();
+                double[][] outputList = outputs.ToArray();
+
+                return new Tuple<double[][], double[][]>(inputList, outputList);
+
+
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
+        private static void SinRegressionResults(NeuralNet net, double[][] examples, string outfileName, string ext)
+        {
+            System.Globalization.CultureInfo us = new System.Globalization.CultureInfo("en-us");
+            StreamWriter writer = new StreamWriter(new FileStream(@"C:\Users\Gabriele\neural-net\matlab\"+outfileName+"."+ext, FileMode.Create));
+
+            for (int i = 0; i < examples.Length; i++)
+            {
+                net.ComputeOutput(examples[i]);
+                writer.WriteLine(net.Output.At(0).ToString(us));
+            }
+
+            writer.Close();
+        }
+
+        private static void SinRegression()
+        {
+            Tuple<double[][], double[][]> dataset;
+
+            double[][] input;
+            double[][] target;
+
+            using (StreamReader sinDataset = File.OpenText(@"C:\Users\Gabriele\neural-net\matlab\sinDataset.txt"))
+            {
+                dataset = ReadSinData(sinDataset);
+                input = dataset.Item1;
+                target = dataset.Item2;
+            }
+
+            int[] layerSize = { 10, 1 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new LinearFunction() };
+            NeuralNet net = new NeuralNet(1, layerSize, functions);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0, 0);
+
+
+            backProp.MaxEpoch = 1000;
+            backProp.BatchSize = 1;
+
+            for (double eta = 0.1; eta <= 1; eta += 0.1)
+            {
+                Console.WriteLine("Train with eta = " + eta);
+                backProp.LearningRate = eta;
+                backProp.Learn(input, target);
+                SinRegressionResults(net, target, "sinOutput-" + eta,"txt");
+                net.RandomizeWeights();
+            }
+
+                
+
+            //Console.WriteLine("Hidden weights\n{0}", net[net.NumberOfLayers - 2].Weights.Print());
+            //Console.WriteLine("Output weights\n{0}", net.OutputLayer.Weights.Print());
+
+            //Console.WriteLine("Hidden bias\n{0}", net[net.NumberOfLayers - 2].Bias.ToColumnMatrix().Print());
+            //Console.WriteLine("Output bias\n{0}", net.OutputLayer.Bias.At(0));
+            
+
+            
+        }
 
         static void Main()
         {
             //TestMonk();
             //TestAA1Exam();
-            TestSinRegression();
+            //TestRegression();
+            SinRegression();
         }
 
     }

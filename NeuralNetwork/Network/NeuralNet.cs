@@ -12,6 +12,7 @@
     public class NeuralNet :IEnumerable
     {
         private Layer[] netLayers;
+        private Vector<double> input;
         private Vector<double> output;
 
         public NeuralNet(int numOfInput, int[] sizeOfLayers, IActivationFunction[] activationOfLayers)
@@ -39,6 +40,7 @@
 
         public void ComputeOutput(Vector<double> x)
         {
+            Input = x;
             Vector<double> tmp = x;
 
             foreach (Layer layer in netLayers)
@@ -46,8 +48,6 @@
                 layer.ComputeOutput(tmp);
                 tmp = layer.Output;
             }
-
-            //tmp.MapInplace((e) => (e >= 0.5) ? 1.0 : 0.0);
 
             tmp.CopyTo(output);
         }
@@ -67,6 +67,12 @@
             get { return netLayers[layerIndex]; }
         }
 
+        public Vector<double> Input
+        {
+            get { return input; }
+            set { input = value; }
+        }
+
         public Vector<double> Output
         {
             get { return output; }
@@ -84,6 +90,11 @@
 
         #endregion
 
+        public void RandomizeWeights()
+        {
+            foreach (Layer l in netLayers)
+                l.RandomizeWeights();
+        }
 
         public IEnumerator GetEnumerator()
         {

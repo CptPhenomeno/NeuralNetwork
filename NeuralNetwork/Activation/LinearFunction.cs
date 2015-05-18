@@ -1,6 +1,6 @@
 ﻿namespace NeuralNetwork.Activation
 {
-    class LinearFunction : IActivationFunction
+    public class LinearFunction : IActivationFunction
     {
         public double Function(double x)
         {

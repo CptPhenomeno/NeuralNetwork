@@ -19,6 +19,8 @@
         private Vector<double> bias;
         private Vector<double> localField;
         private Vector<double> output;
+
+        private const double stdNormal = 1;
         
 
         public Layer(IActivationFunction activationFunction, int numOfNeurons, int numOfInputs)
@@ -26,10 +28,10 @@
             this.numberOfNeurons = numOfNeurons;
             this.numberOfInputs = numOfInputs;
             this.activationFunction = activationFunction;
-            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, 0.5));
+            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, stdNormal));
             localField = Vector<double>.Build.Dense(NumberOfNeurons);
             output = Vector<double>.Build.Dense(NumberOfNeurons);
-            weights = Matrix<double>.Build.Random(numOfNeurons, numOfInputs, new Normal(0, 0.5));
+            weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
             
         }
 
@@ -54,6 +56,13 @@
         public Matrix<double> Weights
         {
             get { return weights; }
+            set { weights = value; }
+        }
+
+        public Vector<double> Bias
+        {
+            get { return bias; }
+            set { bias = value; }
         }
 
         public Vector<double> Output
@@ -77,5 +86,14 @@
         }
 
         #endregion
+
+        public void RandomizeWeights()
+        {
+            bias.Clear();
+            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, stdNormal));
+
+            weights.Clear();
+            weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
+        }
     }
 }

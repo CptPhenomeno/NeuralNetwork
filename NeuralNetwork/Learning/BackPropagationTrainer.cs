@@ -79,6 +79,8 @@
             do
             {
                 ++epoch;
+                if (epoch % 100 == 0)
+                    Console.WriteLine("--- Epoch {0} ---", epoch);
                 trainingError = RunEpoch(inputs, expectedOutputs);
                 trainingError /= numOfElemInEpoch;
                 if (LogInformationEnabled)
@@ -93,7 +95,7 @@
 
                     errorOnEpochs.Add(log);
                 }
-                //Console.WriteLine("Error at iteration {0}: {1}", epoch, trainingError);
+
                 //Shuffle the examples
                 ArrayExtensions.TwinShuffle(inputs, expectedOutputs);
                     
