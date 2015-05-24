@@ -8,6 +8,8 @@
     using NeuralNetwork.Network;
     using NeuralNetwork.Layer;
 
+    using DatasetUtility;
+
     public class BackPropagation
     {
         private NeuralNet net;

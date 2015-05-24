@@ -202,11 +202,11 @@ namespace DataPlotter
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
 
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.2, 0.5);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
 
 
-            using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))
-            using (StringReader testSet = new StringReader(NeuralNetwork.Properties.Resources.monks_1_test))
+            using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_3_train))
+            using (StringReader testSet = new StringReader(NeuralNetwork.Properties.Resources.monks_3_test))
             {
                 dataset = ReadDataset(trainSet);
                 testset = ReadDataset(testSet);

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuralNetwork", "NeuralNetw
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataPlotter", "DataPlotter\DataPlotter.csproj", "{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatasetUtility", "DatasetUtility\DatasetUtility.csproj", "{AA6FA028-6B0A-43FA-8E1A-FE9891E51531}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA49C1C7-8F74-4538-B00F-A5F5B24CAFE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA6FA028-6B0A-43FA-8E1A-FE9891E51531}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA6FA028-6B0A-43FA-8E1A-FE9891E51531}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA6FA028-6B0A-43FA-8E1A-FE9891E51531}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA6FA028-6B0A-43FA-8E1A-FE9891E51531}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
