@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -55,21 +56,14 @@
     <Compile Include="Activation\SigmoidFunction.cs" />
     <Compile Include="Activation\Threshold.cs" />
     <Compile Include="Learning\BackPropagation.cs" />
-    <Compile Include="Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
     <Compile Include="Layer\Layer.cs" />
     <Compile Include="Learning\BackPropagationTrainer.cs" />
+    <Compile Include="MNIST_Image_Reader.cs" />
+    <Compile Include="MNIST_Label_Reader.cs" />
     <Compile Include="Network\NeuralNet.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\Extensions\Extensions.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -83,6 +77,10 @@
     <None Include="Dataset\AA1-testset.csv" />
     <None Include="Dataset\AA1-trainset.csv" />
     <None Include="Dataset\mpg.csv" />
+    <None Include="Dataset\t10k-images.idx3-ubyte" />
+    <None Include="Dataset\t10k-labels.idx1-ubyte" />
+    <None Include="Dataset\train-images.idx3-ubyte" />
+    <None Include="Dataset\train-labels.idx1-ubyte" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -106,6 +104,12 @@
     <Content Include="Dataset\monks-3-train.txt" />
     <None Include="Dataset\sinTest.txt" />
     <None Include="Dataset\sinData.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DatasetUtility\DatasetUtility.csproj">
+      <Project>{aa6fa028-6b0a-43fa-8e1a-fe9891e51531}</Project>
+      <Name>DatasetUtility</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

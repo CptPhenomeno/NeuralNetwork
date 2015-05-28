@@ -105,6 +105,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DatasetUtility\DatasetUtility.csproj">
+      <Project>{aa6fa028-6b0a-43fa-8e1a-fe9891e51531}</Project>
+      <Name>DatasetUtility</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NeuralNetwork\NeuralNetwork.csproj">
       <Project>{3c8c9a2a-7706-4601-8add-65f88f52cd74}</Project>
       <Name>NeuralNetwork</Name>

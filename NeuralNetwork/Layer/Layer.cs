@@ -1,10 +1,12 @@
 ﻿namespace NeuralNetwork.Layer
 {
+    using System;
+
     using MathNet.Numerics.LinearAlgebra;
     using MathNet.Numerics.LinearAlgebra.Double;
     using MathNet.Numerics.Distributions;
 
-    using NeuralNetwork.Activation;
+    using NeuralNetwork.Activation;    
     /*
     delegate double ActivationFunction(double x);
     delegate double ActivationFunctionDerivative(double x);
@@ -33,6 +35,17 @@
             output = Vector<double>.Build.Dense(NumberOfNeurons);
             weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
             
+        }
+
+        private Layer(Layer toClone)
+        {
+            numberOfNeurons = toClone.NumberOfNeurons;
+            numberOfInputs = toClone.NumberOfInputs;
+            activationFunction = toClone.activationFunction;
+            bias = toClone.Bias;
+            localField = toClone.localField;
+            output = toClone.Output;
+            weights = toClone.Weights;
         }
 
         public void ComputeOutput(Vector<double> input)
@@ -94,6 +107,11 @@
 
             weights.Clear();
             weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
+        }
+
+        public Layer Clone()
+        {
+            return new Layer(this);
         }
     }
 }

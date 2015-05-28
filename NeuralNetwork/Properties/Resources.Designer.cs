@@ -345,12 +345,13 @@ namespace NeuralNetwork.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to mpg (n),cylinders (n),displacement (n),horsepower (n),weight (n),acceleration (n),year (n),origin (n), name (s)
-        ///18.000000,8.000000,307.000000,130.000000,3504.000000,12.000000,70.000000,1.000000
+        ///   Looks up a localized string similar to 18.000000,8.000000,307.000000,130.000000,3504.000000,12.000000,70.000000,1.000000
         ///15.000000,8.000000,350.000000,165.000000,3693.000000,11.500000,70.000000,1.000000
         ///18.000000,8.000000,318.000000,150.000000,3436.000000,11.000000,70.000000,1.000000
         ///16.000000,8.000000,304.000000,150.000000,3433.000000,12.000000,70.000000,1.000000
-        ///17.000000,8.000000,302.000000,140.000000,3449.000000,10.500000,70.000000 [rest of string was truncated]&quot;;.
+        ///17.000000,8.000000,302.000000,140.000000,3449.000000,10.500000,70.000000,1.000000
+        ///15.000000,8.000000,429.000000,198.000000,4341.000000,10.000000,70.000000,1.000000
+        ///14.000000,8.000000,4 [rest of string was truncated]&quot;;.
         /// </summary>
         public static string mpg {
             get {
@@ -455,6 +456,46 @@ namespace NeuralNetwork.Properties {
         public static string sinTest {
             get {
                 return ResourceManager.GetString("sinTest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] t10k_images {
+            get {
+                object obj = ResourceManager.GetObject("t10k_images", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] t10k_labels {
+            get {
+                object obj = ResourceManager.GetObject("t10k_labels", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] train_images {
+            get {
+                object obj = ResourceManager.GetObject("train_images", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] train_labels {
+            get {
+                object obj = ResourceManager.GetObject("train_labels", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

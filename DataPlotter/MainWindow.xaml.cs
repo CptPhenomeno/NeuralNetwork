@@ -9,13 +9,15 @@ using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Drawing;
 
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
+
 using NeuralNetwork.Activation;
 using NeuralNetwork.Network;
 using NeuralNetwork.Learning;
 using NeuralNetwork.Properties;
 
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
+using DatasetUtility;
 
 namespace DataPlotter
 {
@@ -37,7 +39,7 @@ namespace DataPlotter
 
         private void AddChartToMainWindow(object sender, EventArgs e)
         {
-            data = new BlockingCollection<string>(100);
+            data = new BlockingCollection<string>(1000);
 
             neuralNetErrorChart = new Chart();
 
@@ -129,22 +131,16 @@ namespace DataPlotter
             return input.ToArray();
         }
 
-        static Tuple<double[][], double[][]> ReadDataset(StringReader stream, string outputFile = null)
+        static Dataset ReadMonkDataset(StringReader stream)
         {
             try
             {
+                Dataset dataset = new Dataset();
                 string trainingExample = stream.ReadLine();
                 trainingExample.TrimEnd();
                 char[] separator = { ' ' };
-
-                List<double[]> inputs = new List<double[]>();
-                List<double[]> outputs = new List<double[]>();
                 int c = 0;
-                StreamWriter writer = null;
 
-
-                if (outputFile != null)
-                    writer = new StreamWriter(new FileStream(outputFile, FileMode.CreateNew));
 
                 while (trainingExample != null)
                 {
@@ -155,28 +151,12 @@ namespace DataPlotter
                     strings = stringList.GetRange(1, strings.Length - 1).ToArray();
                     double[] input = EncodingInput(strings);
 
-                    inputs.Add(input);
-                    outputs.Add(output);
-
-                    if (writer != null)
-                    {
-                        foreach (double d in input)
-                            writer.Write(d.ToString() + " ");
-                        foreach (double d in output)
-                            writer.Write(d.ToString() + " ");
-                        writer.WriteLine();
-                    }
+                    dataset.Add(new Sample(input, output));
 
                     trainingExample = stream.ReadLine();
                 }
 
-                if (writer != null)
-                    writer.Close();
-
-                double[][] inputList = inputs.ToArray();
-                double[][] outputList = outputs.ToArray();
-
-                return new Tuple<double[][], double[][]>(inputList, outputList);
+                return dataset;
 
 
             }
@@ -189,45 +169,33 @@ namespace DataPlotter
 
         private void TestMonk()
         {
-            Tuple<double[][], double[][]> dataset;
-            Tuple<double[][], double[][]> testset;
-
-            double[][] trainingExamples;
-            double[][] expectedOutputs;
-
-            double[][] testInput;
-            double[][] testOutput;
+            Dataset trainSet;
+            Dataset testSet;
 
             int[] layerSize = { 3, 1 };
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
 
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3,0.075,0.001);
 
 
-            using (StringReader trainSet = new StringReader(NeuralNetwork.Properties.Resources.monks_3_train))
-            using (StringReader testSet = new StringReader(NeuralNetwork.Properties.Resources.monks_3_test))
+            using (StringReader trainSetStream = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))
+            using (StringReader testSetStream = new StringReader(NeuralNetwork.Properties.Resources.monks_1_test))
             {
-                dataset = ReadDataset(trainSet);
-                testset = ReadDataset(testSet);
+                trainSet = ReadMonkDataset(trainSetStream);
+                testSet = ReadMonkDataset(testSetStream);
 
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
-
-                backProp.MaxEpoch = 1000;
-                backProp.BatchSize = 1;
+                backProp.MaxEpoch = 10000;
+                backProp.BatchSize = 124;
 
                 backProp.EnableLogging(data);
-                backProp.Learn(trainingExamples, expectedOutputs, testInput, testOutput);
+                backProp.Learn(trainSet, testSet);
 
             }
         }
 
         #endregion
-
+        /*
         #region AA1 Exam Test
 
         static Tuple<double[][], double[][]> ReadExamDataset(StringReader stream, string outputFile = null)
@@ -335,6 +303,6 @@ namespace DataPlotter
         }
 
         #endregion
-
+        */
     }
 }

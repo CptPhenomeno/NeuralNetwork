@@ -7,7 +7,7 @@
         private double alpha;
         private double beta;
 
-        public HyperbolicTangentFunction(double alpha = 1.7159, double beta = 2.0/3.0)
+        public HyperbolicTangentFunction(double alpha = 1, double beta = 1)
         {
             this.alpha = alpha;
             this.beta = beta;

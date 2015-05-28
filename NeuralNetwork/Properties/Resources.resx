@@ -151,4 +151,16 @@
   <data name="sinTest" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Dataset\sinTest.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="t10k_images" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Dataset\t10k-images.idx3-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="t10k_labels" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Dataset\t10k-labels.idx1-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="train_images" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Dataset\train-images.idx3-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="train_labels" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Dataset\train-labels.idx1-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

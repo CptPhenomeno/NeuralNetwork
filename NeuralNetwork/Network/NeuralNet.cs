@@ -33,6 +33,15 @@
             output = Vector<double>.Build.Dense(sizeOfLayers[length - 1], 1);
         }
 
+        private NeuralNet(NeuralNet toClone)
+        {
+            netLayers = new Layer[toClone.NumberOfLayers];
+            for (int layerIndex = 0; layerIndex < NumberOfLayers; layerIndex++)
+                netLayers[layerIndex] = toClone[layerIndex].Clone();
+
+            output = toClone.Output;
+        }
+
         public void ComputeOutput(double[] x)
         {
             ComputeOutput(Vector<double>.Build.DenseOfArray(x));
@@ -100,6 +109,11 @@
         {
             for (int layerIndex = 0; layerIndex < NumberOfLayers; layerIndex++)
                 yield return netLayers[layerIndex];
+        }
+
+        public NeuralNet Clone()
+        {
+            return new NeuralNet(this);
         }
     }
 }

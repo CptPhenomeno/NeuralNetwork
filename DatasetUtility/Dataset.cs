@@ -1,58 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DatasetUtility
 {
     public class Dataset
     {
-        private readonly int SAMPLES_PER_FOLD;
+        private List<Sample> samples;
+        private int size;
 
-        private List<Fold> trainingFolds;
-        private Fold validationFold;
-
-        private Fold temporaryFold;
-
-        public Dataset (int foldNumber, int samplesPerFold, int numOfInput, int numOfOutput)
+        public Dataset ()
         {
-            trainingFolds = new List<Fold>(foldNumber - 1);
-            SAMPLES_PER_FOLD = samplesPerFold;
+            samples = new List<Sample>();
         }
 
-        public void AddSampleToDataset(Sample sample)
+        public void Add(Sample sample)
         {
-            if (temporaryFold == null)
-                temporaryFold = new Fold(SAMPLES_PER_FOLD);
-
-            if (temporaryFold.Count < SAMPLES_PER_FOLD)
-                temporaryFold.Add(sample);
-
-            if (temporaryFold.Count == SAMPLES_PER_FOLD)
-            {
-                if (validationFold == null)
-                    validationFold = temporaryFold.Clone();
-                else if (trainingFolds.Count < trainingFolds.Capacity)
-                    trainingFolds.Add(temporaryFold.Clone());
-
-                temporaryFold.Clear();
-            }
-        }
-
-        public void ChangeValidationFold()
-        {
-            trainingFolds.Add(validationFold);
-            validationFold = trainingFolds[0];
-            trainingFolds.RemoveAt(0);
+            samples.Add(sample);
+            size++;
         }
 
         public void Shuffle()
         {
-            validationFold.Shuffle();
-            foreach (Fold f in trainingFolds)
-                f.Shuffle();
+            Random index = new Random(DateTime.Now.Millisecond);
+            
+            for (int i = 0; i < size - 1; i++)
+            {
+                int j = index.Next(i, size);
+                Sample s = samples[i];
+                samples[i] = samples[j];
+                samples[j] = s;
+            }
         }
 
-        public List<Fold> TrainingFold { get { return trainingFolds; } }
+        public List<Sample> Samples { get { return samples; } }
 
-        public Fold ValidationFold { get { return validationFold; } }
+        public Sample this[int sampleIndex] { get { return samples[sampleIndex]; } }
+
+        public int Size { get { return size; } }
 
     }
 }

@@ -1,13 +1,16 @@
 ﻿namespace NeuralNetwork.Learning
 {
-    using NeuralNetwork.Network;
-    using NeuralNetwork.Utils.Extensions;
+    using System;
+    using System.Collections.Concurrent;
 
     using MathNet.Numerics.LinearAlgebra;
     using MathNet.Numerics.LinearAlgebra.Double;
     
-    using System;
-    using System.Collections.Concurrent;
+    
+    using NeuralNetwork.Network;
+    using NeuralNetwork.Utils.Extensions;
+
+    using DatasetUtility;
     
     public class BackPropagationTrainer
     {
@@ -18,12 +21,13 @@
         
         private double maxError;
         private int maxEpoch;
+        private int numFold;
         private int batchSize;
 
         private bool running;
 
         public BackPropagationTrainer(NeuralNet net, double learningRate = 0.3, double momentum = 0.0, double maxError = 0.01,
-                                      int maxEpoch = 1000, int batchSize = 1)
+                                      int maxEpoch = 1000, int numFold = 4, int batchSize = 1)
         {
             this.net = net;
             backpropagation = new BackPropagation(net, learningRate, momentum, batchSize);
@@ -31,65 +35,32 @@
             running = false;
             this.maxError = maxError;
             this.maxEpoch = maxEpoch;
+            this.numFold = numFold;
             this.batchSize = batchSize;
         }
 
-        public void Learn(double[][] inputs, double[][] outputs,
-                          double[][] testSet = null, double[][] testExpectedOutput = null)
-        {
-            Vector<double>[] vectorInputs = new Vector<double>[inputs.Length];
-            Vector<double>[] vectorOutputs = new Vector<double>[outputs.Length];
-            Vector<double>[] vectorTest = null;
-            Vector<double>[] vectorTestOutput = null;
-
-
-            int inputIndex = 0, outputIndex = 0;
-
-            foreach (double[] input in inputs)
-                vectorInputs[inputIndex++] = Vector<double>.Build.DenseOfArray(input);
-
-            foreach (double[] output in outputs)
-                vectorOutputs[outputIndex++] = Vector<double>.Build.DenseOfArray(output);
-
-            if (testSet != null && testExpectedOutput != null)
-            {
-                int testIndex = 0;
-                vectorTest = new Vector<double>[testSet.Length];
-                foreach (double[] test in testSet)
-                    vectorTest[testIndex++] = Vector<double>.Build.DenseOfArray(test);
-
-                vectorTestOutput = new Vector<double>[testExpectedOutput.Length];
-                testIndex = 0;
-                foreach (double[] testOutput in testExpectedOutput)
-                    vectorTestOutput[testIndex++] = Vector<double>.Build.DenseOfArray(testOutput);
-            }
-
-            Learn(vectorInputs, vectorOutputs, vectorTest, vectorTestOutput);
-        }
-
-        public void Learn(Vector<double>[] inputs, Vector<double>[] expectedOutputs,
-                          Vector<double>[] testSet = null, Vector<double>[] testExpectedOutput = null)
+        public void Learn(Dataset trainSet, Dataset testSet = null)
         {
             running = true;
             double trainingError = 0.0;
             double testError = 0.0;
             int epoch = -1;
-            int numOfElemInEpoch = inputs.Length;
+            int numOfElemInEpoch = trainSet.Size;
 
             do
             {
                 ++epoch;
                 if (epoch % 100 == 0)
                     Console.WriteLine("--- Epoch {0} ---", epoch);
-                trainingError = RunEpoch(inputs, expectedOutputs);
+                trainingError = RunEpoch(trainSet);
                 trainingError /= numOfElemInEpoch;
                 if (LogInformationEnabled)
                 {
                     string log = epoch + ":" + trainingError;
 
-                    if (testSet != null && testExpectedOutput != null)
+                    if (testSet != null && testSet != null)
                     {
-                        testError = RunTestSet(testSet, testExpectedOutput);
+                        testError = RunTestSet(testSet);
                         log += ":" + testError;
                     }
 
@@ -97,45 +68,132 @@
                 }
 
                 //Shuffle the examples
-                ArrayExtensions.TwinShuffle(inputs, expectedOutputs);
-                    
+                trainSet.Shuffle();
+
             } while (trainingError > MaxError && epoch < MaxEpoch);
-            
+
             if (logInformationEnabled)
                 errorOnEpochs.CompleteAdding();
             running = false;
         }
 
-        private double RunTestSet(Vector<double>[] testInput, Vector<double>[] testExpectedOutput)
+        public void CrossValidationLearn(Dataset trainSet, int folds = 4, Dataset testSet = null)
+        {
+            NeuralNet savedNet = net.Clone();
+            double trainingError = 0.0;
+            double validationError = 0.0;
+            double minValidationError = Double.MaxValue;
+            //double testError = 0.0;
+            
+            int validationFail = 0;
+            int maxFail = 10;
+            
+            int epoch = -1;
+            int savedEpoch = -1;
+            int trainSetSize = trainSet.Size;
+
+            int foldSize = trainSetSize / folds;
+            int lastFoldSize = foldSize + (trainSetSize % folds);
+
+            do
+            {
+                ++epoch;
+
+                if (epoch % 100 == 0)
+                    Console.WriteLine("--- Epoch {0} ---", epoch);
+                int start = DateTime.Now.Millisecond;
+                for (int k = 0; k < folds; k++)
+                {
+                    int validationSize = (k == folds - 1) ? lastFoldSize : foldSize;
+                    int trainingSize = trainSetSize - validationSize;
+
+                    double foldValidationError = 0;
+
+                    //Train
+                    for (int trainIndex = (k * foldSize + validationSize) % trainSetSize;
+                         trainIndex != k * foldSize;
+                         trainIndex = ((trainIndex + 1) % trainSetSize))
+                    {
+                        trainingError += backpropagation.Run(trainIndex, trainSet);
+                        backpropagation.UpdateNetwork();
+                    }
+
+                    trainingError /= trainingSize;
+
+                    //Cross Validation
+                    for (int valIndex = k * foldSize; valIndex < k * foldSize + validationSize; valIndex++)
+                    {
+                        Sample validationSample = trainSet[valIndex];
+                        net.ComputeOutput(validationSample.Input);
+                        Vector<double> netError = validationSample.Output - net.Output;
+                        foldValidationError += netError.DotProduct(netError);
+                    }
+
+                    foldValidationError /= validationSize;
+                    validationError += foldValidationError;
+                }
+
+                validationError /= folds;
+
+                trainSet.Shuffle();
+
+                if (validationError <= minValidationError)
+                {
+                    minValidationError = validationError;
+                    validationFail = 0;
+                    savedNet = net.Clone();
+                    savedEpoch = epoch;
+                }
+                else
+                {
+                    validationFail++;
+                    if (validationFail == maxFail)
+                    {
+                        Console.WriteLine("[{0}] -> Too much validation fails. Restore the net at epoch {1}", epoch, savedEpoch);
+                        net = savedNet;
+                    }
+                        
+                }
+
+                Console.WriteLine("Time elapsed for one epoch: {0}", DateTime.Now.Millisecond - start);
+
+            } while (validationFail < maxFail && validationError > MaxError && epoch < MaxEpoch);
+
+            Console.WriteLine("Training error: {0}",trainingError);
+            Console.WriteLine("Validation error: {0}", validationError);
+        }
+
+        private double RunEpoch(Dataset trainSet)
         {
             double error = 0.0;
-            int sizeOfTestSet = testInput.Length;
+            int size = trainSet.Size;
+
+            for (int next = 0; next < size; next += batchSize)
+            {
+                error += backpropagation.Run(next, trainSet);
+                //Update the network only after batchSize examples
+                backpropagation.UpdateNetwork();
+            }
+
+            return error;
+        }
+
+        private double RunTestSet(Dataset testSet)
+        {
+            double error = 0.0;
+            int sizeOfTestSet = testSet.Size;
 
             for (int next = 0; next < sizeOfTestSet; next++)
             {
-                Vector<double> input = testInput[next];
-                net.ComputeOutput(input);
+                Sample sample = testSet[next];
+                net.ComputeOutput(sample.Input);
                 //Vector with error for each output of the network
-                Vector<double> netError = testExpectedOutput[next] - net.Output;
+                Vector<double> netError = sample.Output - net.Output;
                 //I think that this matrix is 1x1 but is better check...
                 error += netError.DotProduct(netError);
             }
 
             error /= sizeOfTestSet;
-
-            return error;
-        }
-
-        private double RunEpoch(Vector<double>[] inputs, Vector<double>[] expectedOutputs)
-        {
-            double error = 0.0;
-
-            for (int next = 0; next < inputs.Length; next += batchSize)
-            {
-                error += backpropagation.Run(next, inputs, expectedOutputs);
-                //Update the network only after batchSize examples
-                backpropagation.UpdateNetwork();
-            }
 
             return error;
         }
@@ -152,6 +210,12 @@
         {
             get { return maxEpoch; }
             set { maxEpoch = value; }
+        }
+
+        public int NumFold
+        {
+            get { return numFold; }
+            set { numFold = value; }
         }
 
         public int BatchSize

@@ -31,22 +31,21 @@
             InitializeNetworkValues();
         }
 
-        public double Run(int start, Vector<double>[] inputs, Vector<double>[] expectedOutputs)
+        public double Run(int start, Dataset trainSet)
         {
             double error = 0.0;
 
             for (int next = start; next < start + batchSize; next++)
             {
-                Vector<double> input = inputs[next];
-                net.Input = input;
-                net.ComputeOutput(input);
+                Sample sample = trainSet[next];
+                net.ComputeOutput(sample.Input);
                 //Vector with error for each output of the network
-                Vector<double> netError = expectedOutputs[next] - net.Output;
+                Vector<double> netError = sample.Output - net.Output;
                 //I think that this matrix is 1x1 but is better check...
                 error += netError.DotProduct(netError);
 
                 ComputeOutputLayerUpdate(netError);
-                ComputeHiddenLayersUpdate(input);                
+                ComputeHiddenLayersUpdate(sample.Input);                
             }
 
             return error;

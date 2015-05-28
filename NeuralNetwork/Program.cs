@@ -15,79 +15,14 @@ using NeuralNetwork.Learning;
 using NeuralNetwork.Activation;
 using NeuralNetwork.Utils.Extensions;
 
+using DatasetUtility;
+using MNIST_Reader;
+
 namespace NeuralNetwork
 {
     static class Program
     {
 
-        private static void TestXOR()
-        {
-            int[] layerSize = { 3, 1 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new HyperbolicTangentFunction() };
-
-            NeuralNet net = new NeuralNet(2, layerSize, functions);
-
-            #region Input
-            Vector<double> input1 = Vector<double>.Build.Dense(new[] { 0.0, 0.0 });
-            Vector<double> input2 = Vector<double>.Build.Dense(new[] { 0.0, 0.1 });
-            Vector<double> input3 = Vector<double>.Build.Dense(new[] { 1.0, 0.0 });
-            Vector<double> input4 = Vector<double>.Build.Dense(new[] { 1.0, 0.1 });
-
-            Vector<double>[] inputs = { input1, input2, input3, input4 };
-            #endregion
-
-            #region Output
-            Vector<double> output1 = Vector<double>.Build.Dense(new[] { 0.0 });
-            Vector<double> output2 = Vector<double>.Build.Dense(new[] { 1.0 });
-            Vector<double> output3 = Vector<double>.Build.Dense(new[] { 1.0 });
-            Vector<double> output4 = Vector<double>.Build.Dense(new[] { 0.0 });
-
-            Vector<double>[] outputs = { output1, output2, output3, output4 };
-            #endregion
-
-            Console.WriteLine(  "****************\n"+
-                                "*    Before    *\n"+
-                                "****************\n");
-            net.ComputeOutput(input1);
-            Console.WriteLine("output1 {0} - atteso {1}", net.Output, 0);
-
-            net.ComputeOutput(input2);
-            Console.WriteLine("output2 {0} - atteso {1}", net.Output, 1);
-
-            net.ComputeOutput(input3);
-            Console.WriteLine("output3 {0} - atteso {1}", net.Output, 1);
-
-            net.ComputeOutput(input4);
-            Console.WriteLine("output4 {0} - atteso {1}", net.Output, 0);
-
-            BackPropagationTrainer bprop = new BackPropagationTrainer(net);
-            bprop.LearningRate = 0.7;
-            bprop.Learn(inputs, outputs);
-
-            Console.WriteLine(  "\n****************\n"+
-                                "*     After    *\n"+
-                                "****************\n");
-            net.ComputeOutput(input1);
-            Console.WriteLine("output1 {0} - atteso {1}", net.Output, 0);
-                                                                    
-            net.ComputeOutput(input2);
-            Console.WriteLine("output2 {0} - atteso {1}", net.Output, 1);
-                                                                    
-            net.ComputeOutput(input3);
-            Console.WriteLine("output3 {0} - atteso {1}", net.Output, 1);
-                                                                    
-            net.ComputeOutput(input4);
-            Console.WriteLine("output4 {0} - atteso {1}", net.Output, 0);
-        }        
-
-        private static Matrix<double>[] ToMatrix(double[][] array)
-        {
-            Matrix<double>[] m = new Matrix<double>[array.Length];
-            for (int i = 0; i < array.Length; i++)
-                m[i] = Matrix<double>.Build.DenseOfColumnVectors(Vector<double>.Build.DenseOfArray(array[i]));
-            return m;
-        }
-      
         #region Monk test
        
         static double[] Encode(int value, byte encode)
@@ -109,22 +44,16 @@ namespace NeuralNetwork
             return input.ToArray();
         }
 
-        static Tuple<double[][], double[][]> ReadMonkDataset(StringReader stream, string outputFile = null)
+        static Dataset ReadMonkDataset(StringReader stream)
         {
             try
             {
+                Dataset dataset = new Dataset();
                 string trainingExample = stream.ReadLine();
                 trainingExample.TrimEnd();
                 char[] separator = { ' ' };
-
-                List<double[]> inputs = new List<double[]>();
-                List<double[]> outputs = new List<double[]>();
                 int c = 0;
-                StreamWriter writer = null;
 
-
-                if (outputFile != null)
-                    writer = new StreamWriter(new FileStream(outputFile, FileMode.CreateNew));
 
                 while (trainingExample != null)
                 {
@@ -135,28 +64,12 @@ namespace NeuralNetwork
                     strings = stringList.GetRange(1, strings.Length - 1).ToArray();
                     double[] input = EncodingInput(strings);
 
-                    inputs.Add(input);
-                    outputs.Add(output);
-
-                    if (writer != null)
-                    {
-                        foreach (double d in input)
-                            writer.Write(d.ToString() + " ");
-                        foreach (double d in output)
-                            writer.Write(d.ToString() + " ");
-                        writer.WriteLine();
-                    }
+                    dataset.Add(new Sample(input, output));
 
                     trainingExample = stream.ReadLine();
                 }
 
-                if(writer != null)
-                    writer.Close();
-
-                double[][] inputList = inputs.ToArray();
-                double[][] outputList = outputs.ToArray();
-
-                return new Tuple<double[][], double[][]>(inputList, outputList);
+                return dataset;
 
 
             }
@@ -167,17 +80,18 @@ namespace NeuralNetwork
             }
         }
 
-        private static double RunMonkTest(NeuralNet net, double[][] input, double[][] output)
+        private static double RunMonkTest(NeuralNet net, Dataset testSet)
         {
             double successRatio = 0.0;
-            int numOfExamples = input.Length;
+            int numOfExamples = testSet.Size;
 
-            for (int i = 0; i < input.Length; i++)
+            for (int i = 0; i < numOfExamples; i++)
             {
-                net.ComputeOutput(input[i]);
+                Sample sample = testSet[i];
+                net.ComputeOutput(sample.Input);
                 double netOutput = net.Output.At(0);
                 double roundOutput = Math.Round(netOutput);
-                double expected = output[i][0];
+                double expected = sample.Output.At(0);
 
                 successRatio += (expected == roundOutput) ? 1 : 0;
             }
@@ -187,70 +101,55 @@ namespace NeuralNetwork
 
         private static void TestMonk()
         {
-            Tuple<double[][], double[][]> dataset;
-            Tuple<double[][], double[][]> testset;
-
-            double[][] trainingExamples;
-            double[][] expectedOutputs;
-
-            double[][] testInput;
-            double[][] testOutput;
+            Dataset trainSet;
+            Dataset testSet;
 
             #region Testing Monk Dataset 1
+            
             int[] layerSize = { 3, 1 };
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0.06, 0.001);
 
 
-            using (StringReader trainSet = new StringReader(Properties.Resources.monks_1_train))
-            using (StringReader testSet = new StringReader(Properties.Resources.monks_1_test))
+            using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_1_train))
+            using (StringReader testSetStream = new StringReader(Properties.Resources.monks_1_test))
             {
-                dataset = ReadMonkDataset(trainSet);
-                testset = ReadMonkDataset(testSet);
-
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
-
+                trainSet = ReadMonkDataset(trainSetStream);
+                testSet = ReadMonkDataset(testSetStream);
+                
                 backProp.MaxEpoch = 10000;
                 backProp.BatchSize = 1;
 
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 1");
                 Console.WriteLine("*******************");
-                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
+                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.Write("Train the network...");
-                backProp.Learn(trainingExamples, expectedOutputs);
+                //backProp.Learn(trainSet);
+                backProp.CrossValidationLearn(trainSet);
                 Console.WriteLine("done!");
 
-                Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
+                Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.WriteLine("*******************");
             }
             #endregion
 
             #region Testing Monk Dataset 2
+           
             layerSize = new[] { 3, 1 };
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagationTrainer(net, 0.7, 0.3);
+            backProp = new BackPropagationTrainer(net, 0.7, 0.3, 0.001);
 
 
-            using (StringReader trainSet = new StringReader(Properties.Resources.monks_2_train))
-            using (StringReader testSet = new StringReader(Properties.Resources.monks_2_test))
+            using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_2_train))
+            using (StringReader testSetStream = new StringReader(Properties.Resources.monks_2_test))
             {
-                dataset = ReadMonkDataset(trainSet);
-                testset = ReadMonkDataset(testSet);
-
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
+                trainSet = ReadMonkDataset(trainSetStream);
+                testSet = ReadMonkDataset(testSetStream);
 
                 backProp.MaxEpoch = 10000;
                 backProp.BatchSize = 1;
@@ -258,35 +157,29 @@ namespace NeuralNetwork
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 2");
                 Console.WriteLine("*******************");
-                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
+                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.Write("Train the network...");
-                backProp.Learn(trainingExamples, expectedOutputs);
+                backProp.CrossValidationLearn(trainSet);
                 Console.WriteLine("done!");
 
-                Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
+                Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.WriteLine("*******************");
             }
             #endregion
 
             #region Testing Monk Dataset 3
-            layerSize = new[] { 3, 1 };
+            layerSize = new[] { 10, 1 };
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagationTrainer(net, 0.7, 0.3);
+            backProp = new BackPropagationTrainer(net, 0.01, 0.08, 0.0001);
 
 
-            using (StringReader trainSet = new StringReader(Properties.Resources.monks_3_train))
-            using (StringReader testSet = new StringReader(Properties.Resources.monks_3_test))
+            using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_3_train))
+            using (StringReader testSetStream = new StringReader(Properties.Resources.monks_3_test))
             {
-                dataset = ReadMonkDataset(trainSet);
-                testset = ReadMonkDataset(testSet);
-
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
+                trainSet = ReadMonkDataset(trainSetStream);
+                testSet = ReadMonkDataset(testSetStream);
 
                 backProp.MaxEpoch = 10000;
                 backProp.BatchSize = 1;
@@ -294,13 +187,13 @@ namespace NeuralNetwork
                 Console.WriteLine("*******************");
                 Console.WriteLine("Monk Dataset 3");
                 Console.WriteLine("*******************");
-                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
+                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.Write("Train the network...");
-                backProp.Learn(trainingExamples, expectedOutputs);
+                backProp.CrossValidationLearn(trainSet, 10);
                 Console.WriteLine("done!");
 
-                Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testInput, testOutput));
+                Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.WriteLine("*******************");
             }
@@ -309,24 +202,116 @@ namespace NeuralNetwork
        
         #endregion
 
+        #region MNIST test
+
+        private static Dataset ReadMNIST(MemoryStream imageStream, MemoryStream labelStream)
+        {
+            Dataset mnist = new Dataset();
+
+            MNIST_Image_Reader imageReader = new MNIST_Image_Reader(imageStream);
+            MNIST_Label_Reader labelReader = new MNIST_Label_Reader(labelStream);
+
+            double[] inputImage = imageReader.ReadNext();
+            double[] outputLabel = labelReader.ReadNext();
+
+            Console.WriteLine("Start read images");
+            while (inputImage != null && outputLabel != null)
+            {
+                mnist.Add(new Sample(inputImage, outputLabel));
+
+                inputImage = imageReader.ReadNext();
+                outputLabel = labelReader.ReadNext();
+            }
+            Console.WriteLine("End read images");
+
+            return mnist;
+        }
+
+        private static double RunMNISTTest(NeuralNet net, Dataset testSet)
+        {
+            int numOfExamples = testSet.Size;
+            double successRatio = 0;
+
+            for (int i = 0; i < numOfExamples; i++)
+            {
+                Sample sample = testSet[i];
+                net.ComputeOutput(sample.Input);
+                double[] netOutput = net.Output.ToArray();
+                double[] expected = sample.Output.ToArray();
+
+                int expectedLabel = Array.IndexOf(expected, (byte) 1);
+                int outputLabel = MaxIndex(netOutput);
+
+                if (expectedLabel == outputLabel)
+                    successRatio++;
+            }
+
+            return successRatio / (double)numOfExamples * 100.0;
+        }
+
+        private static int MaxIndex(double[] array)
+        {
+            double max = Double.MinValue;
+            int maxIndex = -1;
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i] > max)
+                {
+                    max = array[i];
+                    maxIndex = i;
+                }
+            }
+            return maxIndex;
+        }
+
+        private static void TestMNIST()
+        {
+            Dataset mnistTrainSet;
+            Dataset mnistTestSet;
+
+            int[] layerSize = { 100, 10 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            NeuralNet net = new NeuralNet(784, layerSize, functions);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0.06, 0.001);
+
+            using (MemoryStream imageTrainStream = new MemoryStream(Properties.Resources.train_images))
+            using (MemoryStream labelTrainStream = new MemoryStream(Properties.Resources.train_labels))
+            {
+                mnistTrainSet = ReadMNIST(imageTrainStream, labelTrainStream);
+
+                backProp.MaxEpoch = 1000;
+                backProp.BatchSize = 1;
+
+                backProp.Learn(mnistTrainSet);
+
+                mnistTrainSet = null;
+
+                using (MemoryStream imageTestStream = new MemoryStream(Properties.Resources.train_images))
+                using (MemoryStream labelTestStream = new MemoryStream(Properties.Resources.train_labels))
+                {
+                    mnistTestSet = ReadMNIST(imageTestStream, labelTestStream);
+
+                    double accuracy = RunMNISTTest(net, mnistTestSet);
+                    Console.WriteLine("Success ratio: {0}", accuracy);
+                }
+            }
+
+        }
+
+        #endregion
+
         #region Unipi test
-        
-        static Tuple<double[][], double[][]> ReadExamDataset(StringReader stream, string outputFile = null)
+
+        static Dataset ReadExamDataset(StringReader stream)
         {
             try
             {
+                Dataset dataset = new Dataset();
                 string trainingExample = stream.ReadLine();
                 trainingExample.TrimEnd();
                 char[] separator = { ',' };
-
-                List<double[]> inputs = new List<double[]>();
-                List<double[]> outputs = new List<double[]>();
                 int c = 0;
-                StreamWriter writer = null;
 
-
-                if (outputFile != null)
-                    writer = new StreamWriter(new FileStream(outputFile, FileMode.CreateNew));
 
                 while (trainingExample != null)
                 {
@@ -342,30 +327,12 @@ namespace NeuralNetwork
                     for (int index = 0; index < input.Length; index++)
                         input[index] = Double.Parse(strings[index], us);
 
-                    inputs.Add(input);
-                    outputs.Add(output);
-
-                    if (writer != null)
-                    {
-                        foreach (double d in input)
-                            writer.Write(d.ToString() + " ");
-                        foreach (double d in output)
-                            writer.Write(d.ToString() + " ");
-                        writer.WriteLine();
-                    }
+                    dataset.Add(new Sample(input, output));
 
                     trainingExample = stream.ReadLine();
                 }
 
-                if (writer != null)
-                    writer.Close();
-
-                double[][] inputList = inputs.ToArray();
-                double[][] outputList = outputs.ToArray();
-
-                return new Tuple<double[][], double[][]>(inputList, outputList);
-
-
+                return dataset;
             }
             catch (UnauthorizedAccessException e)
             {
@@ -374,17 +341,18 @@ namespace NeuralNetwork
             }
         }
 
-        private static double RunExamTest(NeuralNet net, double[][] input, double[][] output)
+        private static double RunExamTest(NeuralNet net, Dataset testSet)
         {
             double successRatio = 0.0;
-            int numOfExamples = input.Length;
+            int numOfExamples = testSet.Size;
             double errorLimit = 0.01;
 
-            for (int i = 0; i < input.Length; i++)
+            for (int i = 0; i < numOfExamples; i++)
             {
-                net.ComputeOutput(input[i]);
+                Sample sample = testSet[i];
+                net.ComputeOutput(sample.Input);
                 Vector<double> netOutput = net.Output;
-                Vector<double> expected = Vector.Build.DenseOfArray(output[i]);
+                Vector<double> expected = sample.Output;
                 Vector<double> errorVector = expected - netOutput;
                 double error = errorVector.DotProduct(errorVector);
                 error /= 2;
@@ -397,48 +365,36 @@ namespace NeuralNetwork
 
         private static void TestAA1Exam()
         {
-            Tuple<double[][], double[][]> dataset;
-            Tuple<double[][], double[][]> testset;
+            Dataset trainSet;
+            Dataset testSet;
 
-            double[][] trainingExamples;
-            double[][] expectedOutputs;
-
-            double[][] testInput;
-            double[][] testOutput;
-
-            #region Testing Monk Dataset 1
-            int[] layerSize = { 10, 2 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            #region Testing AA1 Dataset
+            int[] layerSize = { 5, 2 };
+            IActivationFunction[] functions = { new HyperbolicTangentFunction(), new LinearFunction() };
             NeuralNet net = new NeuralNet(10, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.5, 0.01);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0, 0.01);
 
 
-            using (StringReader trainSet = new StringReader(Properties.Resources.AA1_trainset))
-            using (StringReader testSet = new StringReader(Properties.Resources.AA1_testset))
+            using (StringReader trainSetStream = new StringReader(Properties.Resources.AA1_trainset))
+            using (StringReader testSetStream = new StringReader(Properties.Resources.AA1_testset))
             {
-                dataset = ReadExamDataset(trainSet);
-                testset = ReadExamDataset(testSet);
-
-                trainingExamples = dataset.Item1;
-                expectedOutputs = dataset.Item2;
-
-                testInput = testset.Item1;
-                testOutput = testset.Item2;
-
-                backProp.MaxEpoch = 1000000;
+                trainSet = ReadExamDataset(trainSetStream);
+                testSet = ReadExamDataset(testSetStream);
+                
+                backProp.MaxEpoch = 10000;
                 backProp.BatchSize = 1;
 
                 Console.WriteLine("*******************");
                 Console.WriteLine("AA1 Exam Test");
                 Console.WriteLine("*******************");
-                Console.WriteLine("Before training the success ratio is {0}", RunExamTest(net, testInput, testOutput));
+                Console.WriteLine("Before training the success ratio is {0}", RunExamTest(net, testSet));
 
-                Console.Write("Train the network...");
-                backProp.Learn(trainingExamples, expectedOutputs);
+                Console.WriteLine("Train the network...");
+                backProp.CrossValidationLearn(trainSet, 5);
                 Console.WriteLine("done!");
 
-                Console.WriteLine("After training the success ratio is {0}", RunExamTest(net, testInput, testOutput));
+                Console.WriteLine("After training the success ratio is {0}", RunExamTest(net, testSet));
 
                 Console.WriteLine("*******************");
             }
@@ -446,6 +402,9 @@ namespace NeuralNetwork
         }
 
         #endregion
+
+        /*
+        
 
         #region Regression test
 
@@ -848,13 +807,15 @@ namespace NeuralNetwork
 
             
         }
-
+        */
         static void Main()
         {
             //TestMonk();
             //TestAA1Exam();
             //TestRegression();
-            SinRegression();
+            //SinRegression();
+            TestMNIST();
+            
         }
 
     }
