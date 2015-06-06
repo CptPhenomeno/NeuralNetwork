@@ -11,9 +11,8 @@
 
     public class NeuralNet :IEnumerable
     {
-        private Layer[] netLayers;
         private int numberOfInputs;
-        private Vector<double> input;
+        private Layer[] netLayers;
         private Vector<double> output;
 
         public NeuralNet(int numOfInput, int[] sizeOfLayers, IActivationFunction[] activationOfLayers)
@@ -42,7 +41,6 @@
 
         public void ComputeOutput(Vector<double> x)
         {
-            Input = x;
             Vector<double> tmp = x;
 
             foreach (Layer layer in netLayers)
@@ -64,32 +62,26 @@
 
         #region Getter & Setter
 
-        public Layer this[int layerIndex]
-        {
-            get { return netLayers[layerIndex]; }
-            set { netLayers[layerIndex] = value; }
-        }
-
         public int NumberOfInputs
         {
             get { return numberOfInputs; }
             set { numberOfInputs = value; }
         }
 
-        public Vector<double> Input
+        public int NumberOfLayers
         {
-            get { return input; }
-            set { input = value; }
+            get { return netLayers.Length; }
+        }
+
+        public Layer this[int layerIndex]
+        {
+            get { return netLayers[layerIndex]; }
+            set { netLayers[layerIndex] = value; }
         }
 
         public Vector<double> Output
         {
             get { return output; }
-        }
-
-        public int NumberOfLayers
-        {
-            get { return netLayers.Length; }
         }
 
         public Layer OutputLayer
@@ -107,17 +99,27 @@
                 return false;
             }
 
-            NeuralNet otherNet = (NeuralNet)obj;
+            NeuralNet otherNet = obj as NeuralNet;
 
-            if (NumberOfLayers == otherNet.NumberOfLayers)
+            return Equals(otherNet);
+        }
+
+        private bool Equals(NeuralNet n)
+        {
+            if (NumberOfLayers == n.NumberOfLayers)
             {
                 bool equality = true;
                 for (int layerIndex = 0; layerIndex < NumberOfLayers; layerIndex++)
-                    equality &= this[layerIndex].Equals(otherNet[layerIndex]);
+                    equality &= this[layerIndex].Equals(n[layerIndex]);
 
                 return equality;
             }
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public void RandomizeWeights()

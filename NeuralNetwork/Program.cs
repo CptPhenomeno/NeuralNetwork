@@ -105,10 +105,12 @@ namespace NeuralNetwork
             Dataset trainSet;
             Dataset testSet;
 
+            IActivationFunction hyperbolic = new HyperbolicTangentFunction();
+
             #region Testing Monk Dataset 1
             
             int[] layerSize = { 3, 1 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            IActivationFunction[] functions = { hyperbolic, new LinearFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0, 0, 0.0001);
@@ -273,7 +275,7 @@ namespace NeuralNetwork
             Dataset mnistTestSet;
 
             int[] layerSize = { 100, 10 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
+            IActivationFunction[] functions = { new HyperbolicTangentFunction(), new LinearFunction() };
             NeuralNet net = new NeuralNet(784, layerSize, functions);
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0.06, 0.001);
 
@@ -472,7 +474,7 @@ namespace NeuralNetwork
 
             #region Testing AA1 Dataset
             int[] layerSize = { 15, 2 };
-            IActivationFunction[] functions = { new SigmoidFunction(), new LinearFunction() };
+            IActivationFunction[] functions = { new HyperbolicTangentFunction(), new LinearFunction() };
             NeuralNet net = new NeuralNet(10, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.02, 0, 0.0001);
@@ -916,10 +918,10 @@ namespace NeuralNetwork
         static void Main()
         {
             //TestMonk();
-            //TestAA1Exam();
+            TestAA1Exam();
             //TestRegression();
             //SinRegression();
-            TestMNIST();
+            //TestMNIST();
         }
 
     }

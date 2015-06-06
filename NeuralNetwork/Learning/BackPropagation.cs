@@ -10,7 +10,7 @@
 
     using DatasetUtility;
 
-    public class BackPropagation
+    public class Backpropagation
     {
         private NeuralNet net;
         private Vector<double>[] deltas;
@@ -21,7 +21,7 @@
         private double learningRate;
         private double momentum;
 
-        public BackPropagation(NeuralNet net, double learningRate, double momentum, int batchSize)
+        public Backpropagation(NeuralNet net, double learningRate, double momentum, int batchSize)
         {
             this.learningRate = learningRate;
             this.momentum = momentum;
@@ -39,9 +39,10 @@
             {
                 Sample sample = trainSet[next];
                 net.ComputeOutput(sample.Input);
+                
                 //Vector with error for each output of the network
                 Vector<double> netError = sample.Output - net.Output;
-                //I think that this matrix is 1x1 but is better check...
+                
                 error += netError.DotProduct(netError);
                 error /= 2;
 
@@ -52,6 +53,7 @@
             return error;
         }
 
+        //Assume that the network have at least two layers
         private void ComputeOutputLayerUpdate(Vector<double> netError)
         {
             int outputLayerIndex = net.NumberOfLayers - 1;
@@ -62,10 +64,7 @@
             biasesUpdates[outputLayerIndex].Add(deltas[outputLayerIndex].Multiply(learningRate), biasesUpdates[outputLayerIndex]);
 
             Vector<double> outputLayerInput = null;
-            if (net.NumberOfLayers > 1)
-                outputLayerInput = net[outputLayerIndex - 1].Output;
-            else if (net.NumberOfLayers == 1)
-                outputLayerInput = net.Input;
+            outputLayerInput = net[outputLayerIndex - 1].Output;
             
             //Update value for output weights
             //I have some doubt here...

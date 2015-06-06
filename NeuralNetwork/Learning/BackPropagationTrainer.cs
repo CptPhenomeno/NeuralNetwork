@@ -15,7 +15,7 @@
     public class BackPropagationTrainer
     {
         private NeuralNet net;
-        private BackPropagation backpropagation;
+        private Backpropagation backpropagation;
         private BlockingCollection<string> errorOnEpochs;
         private bool logInformationEnabled;
         
@@ -30,7 +30,7 @@
                                       int maxEpoch = 1000, int numFold = 4, int batchSize = 1)
         {
             this.net = net;
-            backpropagation = new BackPropagation(net, learningRate, momentum, batchSize);
+            backpropagation = new Backpropagation(net, learningRate, momentum, batchSize);
             logInformationEnabled = false;
             running = false;
             this.maxError = maxError;
