@@ -56,7 +56,7 @@
     <Compile Include="Activation\SigmoidFunction.cs" />
     <Compile Include="Activation\Threshold.cs" />
     <Compile Include="Layer\LayerFactory.cs" />
-    <Compile Include="Learning\BackPropagation.cs" />
+    <Compile Include="Learning\Backpropagation.cs" />
     <Compile Include="Layer\Layer.cs" />
     <Compile Include="Learning\BackPropagationTrainer.cs" />
     <Compile Include="MNIST_Image_Reader.cs" />

@@ -10,44 +10,51 @@
 
     using DatasetUtility;
 
-    public class BackPropagation
+    public class Backpropagation
     {
         private NeuralNet net;
         private Vector<double>[] deltas;
         private Matrix<double>[] weightsUpdates;
         private Matrix<double>[] oldWeightsUpdates;
         private Vector<double>[] biasesUpdates;
+        
         private int batchSize;
+
         private double learningRate;
         private double momentum;
+        private double weightDecay;
 
-        public BackPropagation(NeuralNet net, double learningRate, double momentum, int batchSize)
+        private int samplesUsed;
+
+        public Backpropagation(NeuralNet net, double learningRate, double momentum, double weightDecay, int batchSize)
         {
             this.learningRate = learningRate;
             this.momentum = momentum;
             this.batchSize = batchSize;
+            this.weightDecay = weightDecay;
 
             this.net = net;
             InitializeNetworkValues();
+
+            samplesUsed = 0;
         }
 
-        public double Run(int start, Dataset trainSet)
+		public double Run(Sample sample)
         {
-            double error = 0.0;
-            
-            for (int next = start; next < start + batchSize; next++)
-            {
-                Sample sample = trainSet[next];
-                net.ComputeOutput(sample.Input);
-                //Vector with error for each output of the network
-                Vector<double> netError = sample.Output - net.Output;
-                //I think that this matrix is 1x1 but is better check...
-                error += netError.DotProduct(netError);
-                error /= 2;
+            ++samplesUsed;
 
-                ComputeOutputLayerUpdate(netError);
-                ComputeHiddenLayersUpdate(sample.Input);                
-            }
+            double error = 0.0;
+
+            net.ComputeOutput(sample.Input);
+
+            //Vector with error for each output of the network
+            Vector<double> netError = sample.Output - net.Output;
+
+            error += netError.DotProduct(netError);
+            error /= 2;
+
+            ComputeOutputLayerUpdate(netError);
+            ComputeHiddenLayersUpdate(sample.Input);
 
             return error;
         }
@@ -59,20 +66,22 @@
             deltas[outputLayerIndex] = netError.PointwiseMultiply(net[outputLayerIndex].LocalFieldDifferentiated);            
 
             //Update value for output biases
-            biasesUpdates[outputLayerIndex].Add(deltas[outputLayerIndex].Multiply(learningRate), biasesUpdates[outputLayerIndex]);
+            //biasesUpdates[outputLayerIndex].Add(deltas[outputLayerIndex].Multiply(learningRate), biasesUpdates[outputLayerIndex]);
+            biasesUpdates[outputLayerIndex].Add(deltas[outputLayerIndex], biasesUpdates[outputLayerIndex]);
 
-            Vector<double> outputLayerInput = null;
-            if (net.NumberOfLayers > 1)
-                outputLayerInput = net[outputLayerIndex - 1].Output;
-            else if (net.NumberOfLayers == 1)
-                outputLayerInput = net.Input;
+            //Assume that the network have at least two layers
+            Vector<double> outputLayerInput = net[outputLayerIndex - 1].Output;
             
             //Update value for output weights
             //I have some doubt here...
-            Matrix<double> update = biasesUpdates[outputLayerIndex].ToColumnMatrix().Multiply(outputLayerInput.ToRowMatrix());
+            Matrix<double> weightDecayMatrix = net[outputLayerIndex].Weights.Multiply(2).Multiply(WeightDecay);
+
+            Matrix<double> update = deltas[outputLayerIndex].ToColumnMatrix().Multiply(outputLayerInput.ToRowMatrix());
             weightsUpdates[outputLayerIndex].Add(update, weightsUpdates[outputLayerIndex]);
             weightsUpdates[outputLayerIndex].Add(oldWeightsUpdates[outputLayerIndex], weightsUpdates[outputLayerIndex]);
-            oldWeightsUpdates[outputLayerIndex].Add(update.Multiply(momentum),oldWeightsUpdates[outputLayerIndex]);
+            oldWeightsUpdates[outputLayerIndex].Add(update.Multiply(Momentum), oldWeightsUpdates[outputLayerIndex]);
+
+            weightsUpdates[outputLayerIndex].Add(weightDecayMatrix, weightsUpdates[outputLayerIndex]);
         }
 
         private void ComputeHiddenLayersUpdate(Vector<double> input)
@@ -87,29 +96,37 @@
                 //Vector<double> sigma = weightsUpdates[actualLayerIndex + 1].Transpose().Multiply(deltas[actualLayerIndex + 1]);
                 deltas[actualLayerIndex] = sigma.PointwiseMultiply(net[actualLayerIndex].LocalFieldDifferentiated);
 
-                biasesUpdates[actualLayerIndex].Add(deltas[actualLayerIndex].Multiply(learningRate), biasesUpdates[actualLayerIndex]);
+                biasesUpdates[actualLayerIndex].Add(deltas[actualLayerIndex], biasesUpdates[actualLayerIndex]);
 
                 Vector<double> previousLayerOutput = 
                     (actualLayerIndex == 0) ? input : net[actualLayerIndex - 1].Output;
+
+                Matrix<double> weightDecayMatrix = net[actualLayerIndex].Weights.Multiply(2).Multiply(WeightDecay);
                 
-                Matrix<double> update = biasesUpdates[actualLayerIndex].ToColumnMatrix().Multiply(previousLayerOutput.ToRowMatrix());
+                Matrix<double> update = deltas[actualLayerIndex].ToColumnMatrix().Multiply(previousLayerOutput.ToRowMatrix());
                 weightsUpdates[actualLayerIndex].Add(update,weightsUpdates[actualLayerIndex]);
                 weightsUpdates[actualLayerIndex].Add(oldWeightsUpdates[actualLayerIndex], weightsUpdates[actualLayerIndex]);
-                oldWeightsUpdates[actualLayerIndex].Add(update.Multiply(momentum), oldWeightsUpdates[actualLayerIndex]);
+                oldWeightsUpdates[actualLayerIndex].Add(update.Multiply(Momentum), oldWeightsUpdates[actualLayerIndex]);
+
+                weightsUpdates[actualLayerIndex].Add(weightDecayMatrix, weightsUpdates[actualLayerIndex]);
             }
             
         }
 
         public void UpdateNetwork()
         {
-            if (batchSize > 1)
+			foreach (Matrix<double> m in weightsUpdates)
             {
-                foreach (Matrix<double> m in weightsUpdates)
-                    m.Divide(batchSize, m);
-                foreach (Vector<double> b in biasesUpdates)
-                    b.Divide(batchSize, b);
+                m.Multiply(LearningRate, m);
+                m.Divide(samplesUsed, m);
             }
 
+            foreach (Vector<double> b in biasesUpdates)
+            {
+                b.Multiply(LearningRate, b);
+                b.Divide(samplesUsed, b);
+            }
+			
             net.UpdateNetwork(weightsUpdates, biasesUpdates);
             foreach (Matrix<double> m in weightsUpdates)
                 m.Clear();
@@ -117,6 +134,8 @@
                 b.Clear();
             foreach (Matrix<double> old in oldWeightsUpdates)
                 old.Clear();
+
+            samplesUsed = 0;
         }
 
         #region Getter & Setter
@@ -143,6 +162,12 @@
         {
             get { return momentum; }
             set { momentum = value; }
+        }
+
+        public double WeightDecay
+        {
+            get { return weightDecay; }
+            set { weightDecay = value; }
         }
 
         #endregion

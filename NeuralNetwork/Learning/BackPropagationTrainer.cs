@@ -11,11 +11,13 @@
     using NeuralNetwork.Utils.Extensions;
 
     using DatasetUtility;
+    using System.Diagnostics;
+using System.IO;
     
     public class BackPropagationTrainer
     {
         private NeuralNet net;
-        private BackPropagation backpropagation;
+        private Backpropagation backpropagation;
         private BlockingCollection<string> errorOnEpochs;
         private bool logInformationEnabled;
         
@@ -26,11 +28,12 @@
 
         private bool running;
 
-        public BackPropagationTrainer(NeuralNet net, double learningRate = 0.3, double momentum = 0.0, double maxError = 0.01,
-                                      int maxEpoch = 1000, int numFold = 4, int batchSize = 1)
+        public BackPropagationTrainer(NeuralNet net, double learningRate = 0.3, double momentum = 0.0, 
+                                      double weightDecay = 0.001, double maxError = 0.01, int maxEpoch = 1000, 
+                                      int numFold = 4, int batchSize = 1)
         {
             this.net = net;
-            backpropagation = new BackPropagation(net, learningRate, momentum, batchSize);
+            backpropagation = new Backpropagation(net, learningRate, momentum, weightDecay, batchSize);
             logInformationEnabled = false;
             running = false;
             this.maxError = maxError;
@@ -39,7 +42,7 @@
             this.batchSize = batchSize;
         }
 
-        public NeuralNet Learn(Dataset trainSet, Dataset testSet = null)
+        public NeuralNet Learn(Dataset trainSet, string filepath = null, Dataset testSet = null)
         {
             running = true;
             double trainingError = 0.0;
@@ -47,24 +50,31 @@
             int epoch = -1;
             int numOfElemInEpoch = trainSet.Size;
 
+            StreamWriter writer = null;
+
+            if (filepath != null)
+                writer = new StreamWriter(filepath, false);
+
             do
             {
                 ++epoch;
+
+                if (testSet != null)
+                {
+                    testError = RunTestSet(testSet);
+                }
+
                 if (epoch % 100 == 0)
                     Console.WriteLine("--- Epoch {0} ---", epoch);
                 trainingError = RunEpoch(trainSet);
-                trainingError /= numOfElemInEpoch;
-                if (LogInformationEnabled)
+
+                if (writer != null)
                 {
-                    string log = epoch + ":" + trainingError;
-
-                    if (testSet != null && testSet != null)
-                    {
-                        testError = RunTestSet(testSet);
-                        log += ":" + testError;
-                    }
-
-                    errorOnEpochs.Add(log);
+                    if (testSet != null)
+                        writer.WriteLine("{0} {1}", trainingError.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                                testError.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    else
+                        writer.WriteLine(trainingError.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
 
                 //Shuffle the examples
@@ -72,270 +82,253 @@
 
             } while (trainingError > MaxError && epoch < MaxEpoch);
 
-            if (logInformationEnabled)
-                errorOnEpochs.CompleteAdding();
-            running = false;
+            if (writer != null)
+                writer.Close();
 
             return net;
         }
 
-        private double CrossValidate(Dataset trainSet, int folds = 4, int maxFails = 10)
+        private NeuralNet LearnWithStop(Dataset trainSet, double stopValue, string filepath = null, Dataset testSet = null)
         {
-            NeuralNet savedNet = NetworkFactory.Clone(net);
+            running = true;
             double trainingError = 0.0;
-            double validationError = 0.0;
-            double minValidationError = Double.MaxValue;
-
-            int validationFail = 0;
-
+            double testError = 0.0;
             int epoch = -1;
-            int savedEpoch = -1;
-            int trainSetSize = trainSet.Size;
+            int numOfElemInEpoch = trainSet.Size;
+            StreamWriter writer = null;
 
-            int foldSize = trainSetSize / folds;
-            int lastFoldSize = foldSize + (trainSetSize % folds);
+            if (filepath != null)
+                writer = new StreamWriter(filepath, false);
 
             do
             {
                 ++epoch;
+
+                if (testSet != null)
+                {
+                    testError = RunTestSet(testSet);
+                }
 
                 //if (epoch % 100 == 0)
                 //    Console.WriteLine("--- Epoch {0} ---", epoch);
+                trainingError = RunEpoch(trainSet);
 
+                if (writer != null)
+                {
+                    if (testSet != null)
+                        writer.WriteLine("{0} {1}", trainingError.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                                testError.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    else
+                        writer.WriteLine(trainingError.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                }
+
+                //Shuffle the examples
                 trainSet.Shuffle();
-                
-                for (int k = 0; k < folds; k++)
-                {
-                    int validationSize = (k == folds - 1) ? lastFoldSize : foldSize;
-                    int trainingSize = trainSetSize - validationSize;
 
-                    double foldValidationError = 0;
+            } while (trainingError > stopValue && epoch < MaxEpoch);
 
-                    //Train
-                    for (int trainIndex = (k * foldSize + validationSize) % trainSetSize;
-                         trainIndex != k * foldSize;
-                         trainIndex = ((trainIndex + 1) % trainSetSize))
-                    {
-                        trainingError += backpropagation.Run(trainIndex, trainSet);
-                        backpropagation.UpdateNetwork();
-                    }
+            if (writer != null)
+                writer.Close();
 
-                    trainingError /= trainingSize;
-
-                    //Cross Validation
-                    for (int valIndex = k * foldSize; valIndex < k * foldSize + validationSize; valIndex++)
-                    {
-                        Sample validationSample = trainSet[valIndex];
-                        net.ComputeOutput(validationSample.Input);
-                        Vector<double> netError = validationSample.Output - net.Output;
-                        foldValidationError += netError.DotProduct(netError);
-                        foldValidationError /= 2;
-                    }
-
-                    foldValidationError /= validationSize;
-                    validationError += foldValidationError;
-                }
-
-                validationError /= folds;
-
-                if (validationError <= minValidationError)
-                {
-                    minValidationError = validationError;
-                    validationFail = 0;
-                    savedNet = NetworkFactory.Clone(net);
-                    savedEpoch = epoch;
-                }
-                else
-                {
-                    validationFail++;
-                    if (validationFail == maxFails)
-                    {
-                        net = null;
-                        net = NetworkFactory.Clone(savedNet);
-                    }
-                }
-
-            } while (validationFail < maxFails && validationError > MaxError && epoch < MaxEpoch);
-            
-            savedNet = null;
-            
-            //TODO
-            return minValidationError;
+            return net;
         }
 
-        public NeuralNet CrossValidationLearn(Dataset trainSet, int folds = 4, Dataset testSet = null)
+        private double[] KFoldsTrain(Dataset trainSet, int folds)
         {
-            NeuralNet savedNet = NetworkFactory.Clone(net);
             double trainingError = 0.0;
             double validationError = 0.0;
-            double minValidationError = Double.MaxValue;
-            //double testError = 0.0;
-            
-            int validationFail = 0;
-            int maxFail = 10;
-            
-            int epoch = -1;
-            int savedEpoch = -1;
-            int trainSetSize = trainSet.Size;
 
+            int trainSetSize = trainSet.Size;
             int foldSize = trainSetSize / folds;
             int lastFoldSize = foldSize + (trainSetSize % folds);
 
+            int oldBatchSize = BatchSize;
+
+            for (int k = 0; k < folds; k++)
+            {
+                int validationSize = (k == folds - 1) ? lastFoldSize : foldSize;
+                int trainingSize = trainSetSize - validationSize;
+
+                double foldValidationError = 0;
+                double foldTrainingError = 0;
+
+                BatchSize = trainingSize;
+
+                //Train
+                int samplesUsed = 0;
+                for (int trainIndex = (k * foldSize + validationSize) % trainSetSize;
+                     trainIndex != k * foldSize;
+                     trainIndex = ((trainIndex + 1) % trainSetSize))
+                {
+                    foldTrainingError += backpropagation.Run(trainSet[trainIndex]);
+
+                    if (double.IsNaN(foldTrainingError))
+                        Console.WriteLine("Train error is NaN");
+                    if (double.IsInfinity(foldTrainingError))
+                        Console.WriteLine("Train error is Infinity");
+
+                    ++samplesUsed;
+
+                    if (samplesUsed % BatchSize == 0)
+                        backpropagation.UpdateNetwork();
+                }
+
+                foldTrainingError /= trainingSize;
+
+                //Cross Validation
+                for (int valIndex = k * foldSize; valIndex < k * foldSize + validationSize; valIndex++)
+                {
+                    Sample validationSample = trainSet[valIndex];
+                    net.ComputeOutput(validationSample.Input);
+                    Vector<double> netError = validationSample.Output - net.Output;
+                    foldValidationError += netError.DotProduct(netError);
+                    foldValidationError /= 2;
+                }
+
+                foldValidationError /= validationSize;
+                validationError += foldValidationError;
+                trainingError += foldTrainingError;
+            }
+
+            validationError /= folds;
+            trainingError /= folds;
+
+            BatchSize = oldBatchSize;
+
+            return new double[] {validationError, trainingError};
+        }
+
+        private double[] CrossValidation(Dataset trainSet, int folds = 4, int maxFails = 10)
+        {
+            double validationError = 0.0;
+            double trainingError = 0.0;
+
+            double bestValidationError = double.MaxValue;
+            double bestTrainingError = double.MaxValue;
+
+            int validationFail = 0;
+
+            int epoch = -1;
+            
             do
             {
                 ++epoch;
 
-                //if (epoch % 100 == 0)
-                    Console.WriteLine("--- Epoch {0} ---", epoch);
+                double[] errors = KFoldsTrain(trainSet, folds);
+                
+                validationError = errors[0];
+                trainingError = errors[1];
 
-                for (int k = 0; k < folds; k++)
+                if (validationError < bestValidationError)
                 {
-                    int validationSize = (k == folds - 1) ? lastFoldSize : foldSize;
-                    int trainingSize = trainSetSize - validationSize;
-
-                    double foldValidationError = 0;
-
-                    //Train
-                    for (int trainIndex = (k * foldSize + validationSize) % trainSetSize;
-                         trainIndex != k * foldSize;
-                         trainIndex = ((trainIndex + 1) % trainSetSize))
-                    {
-                        trainingError += backpropagation.Run(trainIndex, trainSet);
-                        backpropagation.UpdateNetwork();
-                    }
-
-                    trainingError /= trainingSize;
-
-                    //Cross Validation
-                    for (int valIndex = k * foldSize; valIndex < k * foldSize + validationSize; valIndex++)
-                    {
-                        Sample validationSample = trainSet[valIndex];
-                        net.ComputeOutput(validationSample.Input);
-                        Vector<double> netError = validationSample.Output - net.Output;
-                        foldValidationError += netError.DotProduct(netError);
-                    }
-
-                    foldValidationError /= validationSize;
-                    validationError += foldValidationError;
-                }
-
-                validationError /= folds;
-
-                trainSet.Shuffle();
-
-                if (validationError <= minValidationError)
-                {
-                    minValidationError = validationError;
+                    bestValidationError = validationError;
+                    bestTrainingError = trainingError;
                     validationFail = 0;
-                    savedNet = NetworkFactory.Clone(net);
-                    savedEpoch = epoch;
                 }
                 else
                 {
                     validationFail++;
-                    if (validationFail == maxFail)
-                    {
-                        Console.WriteLine("[{0}] -> Too much validation fails. Restore the net at epoch {1}", epoch, savedEpoch);
-                        net = NetworkFactory.Clone(savedNet);
-                        backpropagation.Net = net;
-                    }
-                        
                 }
 
-            } while (validationFail < maxFail && validationError > MaxError && epoch < MaxEpoch);
+            } while (validationFail < maxFails && bestValidationError > MaxError && epoch < MaxEpoch);
 
-            
-            Console.WriteLine("Training error: {0}",trainingError);
-            Console.WriteLine("Validation error: {0}", validationError);
-
-            return net;
+            return new double[] {bestValidationError, bestTrainingError};
         }
 
         public NeuralNet CrossValidationLearnWithModelSelection(Dataset trainSet,
-                    double minEta, double etaStep, double maxEta, double minAlpha, double alphaStep, double maxAlpha, 
-                    int folds = 4, int maxFails = 10, Dataset testSet = null)
+                    double[] etaValues, double[] alphaValues,  double[] lambdaValues,
+                    int folds = 4, int maxFails = 10, string filepath = null, Dataset testSet = null)
         {
-            //NeuralNet startNet = NetworkFactory.Clone(net);
-            NeuralNet tmpNet = null;
-            NeuralNet bestNet = null;
-            double bestValidationError = Double.MaxValue;
+            double bestValidationError = double.MaxValue;
+            double bestTrainingError = double.MaxValue;
+
             double bestEta = 0;
             double bestAlpha = 0;
+            double bestLambda = 0;
 
-            int numOfTries = 5;
+            int numOfTries = 1;
 
+            NeuralNet startNet = NetworkFactory.Clone(net);
+            
             //Hyperparameter grid search
-            for (double eta = minEta; eta <= maxEta; eta += etaStep)
+            foreach (double eta in etaValues)
             {
-                for (double alpha = minAlpha; alpha <= maxAlpha; alpha += alphaStep)
+                foreach (double alpha in alphaValues)
                 {
-                    Console.WriteLine("Train network with eta {0} and alpha {1}", eta, alpha);
-
-                    LearningRate = eta;
-                    Momentum = alpha;
-
-                    double meanValidationError = 0;
-                    double bestNetError = Double.MaxValue;
-
-                    for (int t = 0; t < numOfTries; t++)
+                    foreach (double lambda in lambdaValues)
                     {
-                        //Test network generalization
-                        double validationError = CrossValidate(trainSet, folds, maxFails);
-                        meanValidationError += validationError;
+                        Console.WriteLine("Train network with eta {0}, alpha {1} and lambda {2}", eta, alpha, lambda);
 
-                        if (!(Double.IsNaN(validationError)) && validationError < bestNetError)
+                        LearningRate = eta;
+                        Momentum = alpha;
+                        WeightDecay = lambda;
+
+                        double bestValidationErrorMean = 0;
+                        double bestTrainingErrorMean = 0;
+
+                        for (int t = 0; t < numOfTries; t++)
                         {
-                            tmpNet = NetworkFactory.Clone(net);
+                            //Console.WriteLine("Test {0}", t + 1);
+                            //Test network generalization
+                            double[] errors = CrossValidation(trainSet, folds, maxFails);
+                            double validationError = errors[0];
+                            double trainingError = errors[1];
+
+                            bestValidationErrorMean += validationError;
+                            bestTrainingErrorMean += trainingError;
+
+                            net.RandomizeWeights();
+                            backpropagation.Net = net;
                         }
 
-                        net.RandomizeWeights();
+                        bestValidationErrorMean /= numOfTries;
+                        bestTrainingErrorMean /= numOfTries;
+
+                        if (!(double.IsNaN(bestValidationErrorMean)) && bestValidationErrorMean < bestValidationError)
+                        {
+                            bestValidationError = bestValidationErrorMean;
+                            bestTrainingError = bestTrainingErrorMean;
+                            
+                            bestEta = eta;
+                            bestAlpha = alpha;
+                            bestLambda = lambda;
+                        }
+
+                        net = null;
+                        net = NetworkFactory.Clone(startNet);
                         backpropagation.Net = net;
                     }
-
-                    meanValidationError /= numOfTries;
-
-                    if (!(Double.IsNaN(meanValidationError)) && meanValidationError < bestValidationError)
-                    {
-                        bestValidationError = meanValidationError;
-                        bestEta = eta;
-                        bestAlpha = alpha;
-                        bestNet = null;
-                        bestNet = NetworkFactory.Clone(tmpNet);
-                    }
-
-                    tmpNet = null;
-
-                    net.RandomizeWeights();
-                    backpropagation.Net = net;
-                    //Train the start net (same weights)
-                    //net = null;
-                    //net = NetworkFactory.Clone(startNet);
-                    //backpropagation.Net = net;
                 }
             }
 
-            net = null;
-            //startNet = null;
-            net = NetworkFactory.Clone(bestNet);
-            backpropagation.Net = net;
-            bestNet = null;
+            Console.WriteLine("Best eta => {0} Best alpha {1} Best lambda {2}", bestEta, bestAlpha, bestLambda);
 
-            Console.WriteLine("Best performance with eta {0} and alpha {1}", bestEta, bestAlpha);
+            LearningRate = bestEta;
+            Momentum = bestAlpha;
+            WeightDecay = bestLambda;
 
-            return net;
+            return LearnWithStop(trainSet, bestTrainingError, filepath, testSet);            
         }
 
         private double RunEpoch(Dataset trainSet)
         {
             double error = 0.0;
-            int size = trainSet.Size;
+            int sizeOfTrainingSet = trainSet.Size;
+            int next;
 
-            for (int next = 0; next < size; next += batchSize)
+            for (next = 0; next < sizeOfTrainingSet; next++)
             {
-                error += backpropagation.Run(next, trainSet);
+                error += backpropagation.Run(trainSet[next]);
+                
                 //Update the network only after batchSize examples
-                backpropagation.UpdateNetwork();
+                if ((next + 1) % BatchSize == 0)
+                    backpropagation.UpdateNetwork();
             }
+
+            if (next % BatchSize != 0)
+                backpropagation.UpdateNetwork();
+
+            error /= sizeOfTrainingSet;
 
             return error;
         }
@@ -425,6 +418,13 @@
             set { backpropagation.Momentum = value; }
         }
 
+        public double WeightDecay
+        {
+            get { return backpropagation.WeightDecay; }
+            set { backpropagation.WeightDecay = value; }
+        }
+
         #endregion
+
     }
 }

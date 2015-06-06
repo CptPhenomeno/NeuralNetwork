@@ -36,7 +36,9 @@ namespace MNIST_Reader
             if (CanRead())
             {
                 if (nextPixels == null)
-                    nextPixels = new double[rows*columns];
+                    nextPixels = new double[rows * columns];
+                else
+                    Array.Clear(nextPixels, 0, nextPixels.Length);
 
                 for (int r = 0; r < rows; r++)
                 {

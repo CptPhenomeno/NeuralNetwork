@@ -35,6 +35,8 @@ namespace MNIST_Reader
             {
                 if (nextLabel == null)
                     nextLabel = new double[10];
+                else
+                    Array.Clear(nextLabel, 0, 10);
 
                 labelsRead++;
 

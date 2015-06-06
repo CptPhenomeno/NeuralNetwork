@@ -1,17 +1,12 @@
 ﻿namespace NeuralNetwork.Layer
 {
-    using System;
 
-    using MathNet.Numerics.LinearAlgebra;
-    using MathNet.Numerics.LinearAlgebra.Double;
     using MathNet.Numerics.Distributions;
-
-    using NeuralNetwork.Activation;    
-    /*
-    delegate double ActivationFunction(double x);
-    delegate double ActivationFunctionDerivative(double x);
-    */
+    using MathNet.Numerics.LinearAlgebra;
     
+    using NeuralNetwork.Activation;
+    using System;    
+  
     public class Layer
     {
         private int numberOfNeurons;
@@ -22,7 +17,7 @@
         private Vector<double> localField;
         private Vector<double> output;
 
-        private const double stdNormal = 1;
+        private readonly double STD_NORMAL = 1;
         
 
         public Layer(IActivationFunction activationFunction, int numOfNeurons, int numOfInputs)
@@ -30,19 +25,24 @@
             this.numberOfNeurons = numOfNeurons;
             this.numberOfInputs = numOfInputs;
             this.activationFunction = activationFunction;
-            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, stdNormal));
+
+            //STD_NORMAL = Math.Sqrt(1.0 / (NumberOfInputs + 1));
+            STD_NORMAL = 1;
+
+            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, STD_NORMAL));
             localField = Vector<double>.Build.Dense(NumberOfNeurons);
             output = Vector<double>.Build.Dense(NumberOfNeurons);
-            weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
-            
+            weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, STD_NORMAL));
         }
 
         public void ComputeOutput(Vector<double> input)
         {
             //Compute the local field without the bias
             weights.Multiply(input, localField);
+
             //Add the bias for the real induced local field
             localField.Add(bias, localField);
+
             //Apply the activation function to the local field
             localField.Map((l => activationFunction.Function(l)), output);
         }
@@ -55,6 +55,16 @@
 
         #region Getter & Setter
 
+        public int NumberOfNeurons
+        {
+            get { return numberOfNeurons; }
+        }
+
+        public int NumberOfInputs
+        {
+            get { return numberOfInputs; }
+        }
+        
         public IActivationFunction ActivationFunction 
         { 
             get { return activationFunction; } 
@@ -82,19 +92,8 @@
             get { return localField.Map((l => activationFunction.Derivative(l))); }
         }
 
-        public int NumberOfNeurons
-        {
-            get { return numberOfNeurons; }
-        }
-
-        public int NumberOfInputs
-        {
-            get { return numberOfInputs; }
-        }
-
         #endregion
 
-        // override object.Equals
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -102,16 +101,21 @@
                 return false;
             }
 
-            Layer otherLayer = (Layer)obj;
+            Layer otherLayer = obj as Layer;
 
-            if (NumberOfNeurons                 == otherLayer.NumberOfNeurons &&
-                NumberOfInputs                  == otherLayer.numberOfInputs  &&
-                ActivationFunction.GetType()    == otherLayer.ActivationFunction.GetType())
+            return Equals(otherLayer);
+        }
+
+        private bool Equals(Layer l)
+        {
+            if (NumberOfNeurons == l.NumberOfNeurons &&
+                NumberOfInputs == l.numberOfInputs &&
+                ActivationFunction.GetType() == l.ActivationFunction.GetType())
             {
                 bool equality = true;
 
-                equality &= Weights.Equals(otherLayer.Weights);
-                equality &= Bias.Equals(otherLayer.Bias);
+                equality &= Weights.Equals(l.Weights);
+                equality &= Bias.Equals(l.Bias);
 
                 return equality;
             }
@@ -119,15 +123,20 @@
             return false;
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public void RandomizeWeights()
         {
             bias.Clear();
             bias = null;
-            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, stdNormal));
+            bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, STD_NORMAL));
 
             weights.Clear();
             weights = null;
-            weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
+            weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, STD_NORMAL));
         }
     }
 }
