@@ -34,7 +34,7 @@
         public double Run(int start, Dataset trainSet)
         {
             double error = 0.0;
-
+            
             for (int next = start; next < start + batchSize; next++)
             {
                 Sample sample = trainSet[next];
@@ -43,6 +43,7 @@
                 Vector<double> netError = sample.Output - net.Output;
                 //I think that this matrix is 1x1 but is better check...
                 error += netError.DotProduct(netError);
+                error /= 2;
 
                 ComputeOutputLayerUpdate(netError);
                 ComputeHiddenLayersUpdate(sample.Input);                
@@ -119,6 +120,12 @@
         }
 
         #region Getter & Setter
+
+        public NeuralNet Net
+        {
+            get { return net; }
+            set { net = value; }
+        }
 
         public int BatchSize
         {

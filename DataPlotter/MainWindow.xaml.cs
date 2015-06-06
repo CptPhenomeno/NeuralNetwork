@@ -176,7 +176,7 @@ namespace DataPlotter
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
 
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3,0.075,0.001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(ref net, 0.3,0.075,0.001);
 
 
             using (StringReader trainSetStream = new StringReader(NeuralNetwork.Properties.Resources.monks_1_train))

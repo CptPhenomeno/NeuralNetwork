@@ -37,17 +37,6 @@
             
         }
 
-        private Layer(Layer toClone)
-        {
-            numberOfNeurons = toClone.NumberOfNeurons;
-            numberOfInputs = toClone.NumberOfInputs;
-            activationFunction = toClone.activationFunction;
-            bias = toClone.Bias;
-            localField = toClone.localField;
-            output = toClone.Output;
-            weights = toClone.Weights;
-        }
-
         public void ComputeOutput(Vector<double> input)
         {
             //Compute the local field without the bias
@@ -65,6 +54,11 @@
         }
 
         #region Getter & Setter
+
+        public IActivationFunction ActivationFunction 
+        { 
+            get { return activationFunction; } 
+        }
 
         public Matrix<double> Weights
         {
@@ -100,18 +94,40 @@
 
         #endregion
 
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            Layer otherLayer = (Layer)obj;
+
+            if (NumberOfNeurons                 == otherLayer.NumberOfNeurons &&
+                NumberOfInputs                  == otherLayer.numberOfInputs  &&
+                ActivationFunction.GetType()    == otherLayer.ActivationFunction.GetType())
+            {
+                bool equality = true;
+
+                equality &= Weights.Equals(otherLayer.Weights);
+                equality &= Bias.Equals(otherLayer.Bias);
+
+                return equality;
+            }
+
+            return false;
+        }
+
         public void RandomizeWeights()
         {
             bias.Clear();
+            bias = null;
             bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, stdNormal));
 
             weights.Clear();
+            weights = null;
             weights = Matrix<double>.Build.Random(NumberOfNeurons, NumberOfInputs, new Normal(0, stdNormal));
-        }
-
-        public Layer Clone()
-        {
-            return new Layer(this);
         }
     }
 }

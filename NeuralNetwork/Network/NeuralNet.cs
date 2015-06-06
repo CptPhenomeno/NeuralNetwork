@@ -12,6 +12,7 @@
     public class NeuralNet :IEnumerable
     {
         private Layer[] netLayers;
+        private int numberOfInputs;
         private Vector<double> input;
         private Vector<double> output;
 
@@ -20,6 +21,7 @@
             if (sizeOfLayers.Length != activationOfLayers.Length)
                 throw new ArgumentException("Mismatch from number of layers and number of activations functions");
 
+            numberOfInputs = numOfInput;
             int length = sizeOfLayers.Length;
             netLayers = new Layer[length];
 
@@ -31,15 +33,6 @@
             }
 
             output = Vector<double>.Build.Dense(sizeOfLayers[length - 1], 1);
-        }
-
-        private NeuralNet(NeuralNet toClone)
-        {
-            netLayers = new Layer[toClone.NumberOfLayers];
-            for (int layerIndex = 0; layerIndex < NumberOfLayers; layerIndex++)
-                netLayers[layerIndex] = toClone[layerIndex].Clone();
-
-            output = toClone.Output;
         }
 
         public void ComputeOutput(double[] x)
@@ -74,6 +67,13 @@
         public Layer this[int layerIndex]
         {
             get { return netLayers[layerIndex]; }
+            set { netLayers[layerIndex] = value; }
+        }
+
+        public int NumberOfInputs
+        {
+            get { return numberOfInputs; }
+            set { numberOfInputs = value; }
         }
 
         public Vector<double> Input
@@ -99,6 +99,27 @@
 
         #endregion
 
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            NeuralNet otherNet = (NeuralNet)obj;
+
+            if (NumberOfLayers == otherNet.NumberOfLayers)
+            {
+                bool equality = true;
+                for (int layerIndex = 0; layerIndex < NumberOfLayers; layerIndex++)
+                    equality &= this[layerIndex].Equals(otherNet[layerIndex]);
+
+                return equality;
+            }
+            return false;
+        }
+
         public void RandomizeWeights()
         {
             foreach (Layer l in netLayers)
@@ -111,9 +132,5 @@
                 yield return netLayers[layerIndex];
         }
 
-        public NeuralNet Clone()
-        {
-            return new NeuralNet(this);
-        }
     }
 }

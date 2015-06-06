@@ -55,11 +55,13 @@
     <Compile Include="Activation\LinearFunction.cs" />
     <Compile Include="Activation\SigmoidFunction.cs" />
     <Compile Include="Activation\Threshold.cs" />
+    <Compile Include="Layer\LayerFactory.cs" />
     <Compile Include="Learning\BackPropagation.cs" />
     <Compile Include="Layer\Layer.cs" />
     <Compile Include="Learning\BackPropagationTrainer.cs" />
     <Compile Include="MNIST_Image_Reader.cs" />
     <Compile Include="MNIST_Label_Reader.cs" />
+    <Compile Include="Network\NetworkFactory.cs" />
     <Compile Include="Network\NeuralNet.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -17,6 +17,7 @@ using NeuralNetwork.Utils.Extensions;
 
 using DatasetUtility;
 using MNIST_Reader;
+using System.Diagnostics;
 
 namespace NeuralNetwork
 {
@@ -110,7 +111,7 @@ namespace NeuralNetwork
             IActivationFunction[] functions = { new SigmoidFunction(), new SigmoidFunction() };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0.06, 0.001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0, 0, 0.0001);
 
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_1_train))
@@ -128,8 +129,8 @@ namespace NeuralNetwork
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.Write("Train the network...");
-                //backProp.Learn(trainSet);
-                backProp.CrossValidationLearn(trainSet);
+                //net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.1, 0.01, 0.01, 0.1);
+                net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.5, 0, 0.01, 0);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testSet));
@@ -140,9 +141,9 @@ namespace NeuralNetwork
 
             #region Testing Monk Dataset 2
            
-            layerSize = new[] { 3, 1 };
+            layerSize = new[] { 4, 1 };
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagationTrainer(net, 0.7, 0.3, 0.001);
+            backProp = new BackPropagationTrainer(net, 0, 0, 0.0001);
 
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_2_train))
@@ -160,7 +161,8 @@ namespace NeuralNetwork
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.Write("Train the network...");
-                backProp.CrossValidationLearn(trainSet);
+                //net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.1, 0.01, 0.01, 0.1);
+                net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.5, 0, 0.01, 0);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testSet));
@@ -172,7 +174,7 @@ namespace NeuralNetwork
             #region Testing Monk Dataset 3
             layerSize = new[] { 10, 1 };
             net = new NeuralNet(17, layerSize, functions);
-            backProp = new BackPropagationTrainer(net, 0.01, 0.08, 0.0001);
+            backProp = new BackPropagationTrainer(net, 0, 0, 0.0001);
 
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_3_train))
@@ -190,7 +192,8 @@ namespace NeuralNetwork
                 Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
 
                 Console.Write("Train the network...");
-                backProp.CrossValidationLearn(trainSet, 10);
+                //net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.1, 0.01, 0.01, 0.1);
+                net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.5, 0, 0.01, 0);
                 Console.WriteLine("done!");
 
                 Console.WriteLine("After training the success ratio is {0}", RunMonkTest(net, testSet));
@@ -282,7 +285,8 @@ namespace NeuralNetwork
                 backProp.MaxEpoch = 1000;
                 backProp.BatchSize = 1;
 
-                backProp.Learn(mnistTrainSet);
+                //backProp.Learn(mnistTrainSet);
+                net = backProp.CrossValidationLearn(mnistTrainSet, 2);
 
                 mnistTrainSet = null;
 
@@ -341,11 +345,109 @@ namespace NeuralNetwork
             }
         }
 
-        private static double RunExamTest(NeuralNet net, Dataset testSet)
+        static Matrix<double> NormalizeMatrix(Matrix<double> mat)
+        {
+            Tuple<double, double>[] mean_stdDev = new Tuple<double, double>[mat.ColumnCount];
+
+            for (int c = 0; c < mat.ColumnCount; c++)
+                mean_stdDev[c] = Statistics.MeanStandardDeviation(mat.Column(c));
+
+
+            for (int r = 0; r < mat.RowCount; r++)
+                for (int c = 0; c < mat.ColumnCount; c++)
+                {
+                    mat.At(r, c, (mat.At(r, c) - mean_stdDev[c].Item1) / mean_stdDev[c].Item2);
+                }
+
+            return mat;
+        }
+
+        static Dataset ReadExamDatasetAndNormalize(StringReader stream)
+        {
+            try
+            {
+                Dataset dataset = new Dataset();
+                string trainingExample = stream.ReadLine();
+                trainingExample.TrimEnd();
+                char[] separator = { ',' };
+                int r = 0;
+                Matrix<double> tmp = null;
+                double[] values = null;
+
+                while (trainingExample != null)
+                {
+                    string[] strings = trainingExample.Split(separator);
+                    if (values == null)
+                        values = new double[strings.Length - 1];
+                    else
+                        Array.Clear(values, 0, values.Length);
+
+                    for (int index = 1; index < strings.Length; index++)
+                        values[index - 1] = Double.Parse(strings[index], System.Globalization.CultureInfo.InvariantCulture);
+
+                    if (tmp == null)
+                        tmp = Matrix<double>.Build.DenseOfRowVectors(Vector<double>.Build.DenseOfArray(values));
+                    else
+                        tmp = tmp.InsertRow(r, Vector<double>.Build.DenseOfArray(values));
+
+                    r++;
+                    trainingExample = stream.ReadLine();
+                }
+
+                tmp = NormalizeMatrix(tmp);
+
+                for (int actualRow = 0; actualRow < r; actualRow++)
+                {
+                    Vector<double> input = tmp.Row(actualRow, 0, 10);
+                    Vector<double> output = tmp.Row(actualRow, 10, 2);
+
+                    dataset.Add(new Sample(input, output));
+
+                    input = output = null;
+                }
+
+                return dataset;
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
+        private static double RunExamTest(NeuralNet net, Dataset testSet, bool flag = false)
+        {
+            int numOfExamples = testSet.Size;
+            double error = 0.0;
+
+            for (int i = 0; i < numOfExamples; i++)
+            {
+                Sample sample = testSet[i];
+                net.ComputeOutput(sample.Input);
+                Vector<double> netOutput = net.Output;
+                Vector<double> expected = sample.Output;
+                if (flag)
+                {
+                    Console.WriteLine("{0}[0]) {1} / {2}", i, netOutput.At(0), expected.At(0));
+                    Console.WriteLine("{0}[1]) {1} / {2}", i, netOutput.At(1), expected.At(1));
+                    //Console.WriteLine("{0} {1}", netOutput.At(0).ToString(System.Globalization.CultureInfo.InvariantCulture), 
+                        //netOutput.At(1).ToString(System.Globalization.CultureInfo.InvariantCulture));
+                }
+                Vector<double> errorVector = expected - netOutput;
+                error += errorVector.DotProduct(errorVector);
+            }
+
+            error /= 2;
+            error /= numOfExamples;
+
+            return error;
+        }
+
+        private static double RunExamTestAccuracy(NeuralNet net, Dataset testSet)
         {
             double successRatio = 0.0;
             int numOfExamples = testSet.Size;
-            double errorLimit = 0.01;
+            double errorLimit = 0.1;
 
             for (int i = 0; i < numOfExamples; i++)
             {
@@ -369,18 +471,17 @@ namespace NeuralNetwork
             Dataset testSet;
 
             #region Testing AA1 Dataset
-            int[] layerSize = { 5, 2 };
-            IActivationFunction[] functions = { new HyperbolicTangentFunction(), new LinearFunction() };
+            int[] layerSize = { 15, 2 };
+            IActivationFunction[] functions = { new SigmoidFunction(), new LinearFunction() };
             NeuralNet net = new NeuralNet(10, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.01, 0, 0.01);
-
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.02, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.AA1_trainset))
             using (StringReader testSetStream = new StringReader(Properties.Resources.AA1_testset))
             {
-                trainSet = ReadExamDataset(trainSetStream);
-                testSet = ReadExamDataset(testSetStream);
+                trainSet = ReadExamDatasetAndNormalize(trainSetStream);
+                testSet = ReadExamDatasetAndNormalize(testSetStream);
                 
                 backProp.MaxEpoch = 10000;
                 backProp.BatchSize = 1;
@@ -388,13 +489,17 @@ namespace NeuralNetwork
                 Console.WriteLine("*******************");
                 Console.WriteLine("AA1 Exam Test");
                 Console.WriteLine("*******************");
-                Console.WriteLine("Before training the success ratio is {0}", RunExamTest(net, testSet));
+                Console.WriteLine("Before training the error is {0}", RunExamTest(net, testSet));
+                Console.WriteLine("Before training the accuracy is {0}", RunExamTestAccuracy(net, testSet));
 
                 Console.WriteLine("Train the network...");
-                backProp.CrossValidationLearn(trainSet, 5);
+                //net = backProp.CrossValidationLearn(trainSet, 10);
+                net = backProp.CrossValidationLearnWithModelSelection(trainSet, 0.01, 0.01, 0.3, 0, 0.01, 0.3, 10);
+
                 Console.WriteLine("done!");
 
-                Console.WriteLine("After training the success ratio is {0}", RunExamTest(net, testSet));
+                Console.WriteLine("After training the error is {0}", RunExamTest(net, testSet, false));
+                Console.WriteLine("After training the accuracy is {0}", RunExamTestAccuracy(net, testSet));
 
                 Console.WriteLine("*******************");
             }
@@ -815,7 +920,6 @@ namespace NeuralNetwork
             //TestRegression();
             //SinRegression();
             TestMNIST();
-            
         }
 
     }
