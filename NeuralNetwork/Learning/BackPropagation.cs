@@ -74,7 +74,7 @@
             
             //Update value for output weights
             //I have some doubt here...
-            Matrix<double> weightDecayMatrix = net[outputLayerIndex].Weights.Multiply(2).Multiply(WeightDecay);
+            Matrix<double> weightDecayMatrix = 2.0 * WeightDecay * net[outputLayerIndex].Weights;
 
             Matrix<double> update = deltas[outputLayerIndex].ToColumnMatrix().Multiply(outputLayerInput.ToRowMatrix());
             weightsUpdates[outputLayerIndex].Add(update, weightsUpdates[outputLayerIndex]);
@@ -101,7 +101,7 @@
                 Vector<double> previousLayerOutput = 
                     (actualLayerIndex == 0) ? input : net[actualLayerIndex - 1].Output;
 
-                Matrix<double> weightDecayMatrix = net[actualLayerIndex].Weights.Multiply(2).Multiply(WeightDecay);
+                Matrix<double> weightDecayMatrix = 2.0 * WeightDecay * net[actualLayerIndex].Weights;
                 
                 Matrix<double> update = deltas[actualLayerIndex].ToColumnMatrix().Multiply(previousLayerOutput.ToRowMatrix());
                 weightsUpdates[actualLayerIndex].Add(update,weightsUpdates[actualLayerIndex]);

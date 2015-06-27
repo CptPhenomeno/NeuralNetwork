@@ -2,6 +2,9 @@
 {
     using System;
 
+    using MathNet.Numerics.LinearAlgebra;
+    using MathNet.Numerics.LinearAlgebra.Double;
+    
     public class SigmoidFunction : IActivationFunction
     {
         //Params of function
@@ -12,15 +15,15 @@
             this.alpha = alpha;
         }
 
-        public double Function (double x)
+        public Vector<double> Function(Vector<double> x)
         {
-            return 1.0/(1.0 + Math.Exp(-alpha * x));
+            return x.Map(e => 1.0 / (1.0 + Math.Exp(-alpha * e)));
         }
 
-        public double Derivative (double x)
+        public Vector<double> Derivative(Vector<double> x)
         {
-            double y = Function(x);
-            return alpha * y * (1.0 - y);
+            Vector<double> y = Function(x);
+            return alpha * (y.Map(e => e * (1.0 - e)));
         }
     }
 }

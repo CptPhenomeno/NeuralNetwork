@@ -54,7 +54,8 @@
     <Compile Include="Activation\IActivationFunction.cs" />
     <Compile Include="Activation\LinearFunction.cs" />
     <Compile Include="Activation\SigmoidFunction.cs" />
-    <Compile Include="Activation\Threshold.cs" />
+    <Compile Include="Activation\SoftmaxFunction.cs" />
+    <Compile Include="ErrorFunction\ErrorFunction.cs" />
     <Compile Include="Layer\LayerFactory.cs" />
     <Compile Include="Learning\Backpropagation.cs" />
     <Compile Include="Layer\Layer.cs" />
@@ -78,11 +79,8 @@
     </Compile>
     <None Include="Dataset\AA1-testset.csv" />
     <None Include="Dataset\AA1-trainset.csv" />
-    <None Include="Dataset\mpg.csv" />
-    <None Include="Dataset\t10k-images.idx3-ubyte" />
-    <None Include="Dataset\t10k-labels.idx1-ubyte" />
-    <None Include="Dataset\train-images.idx3-ubyte" />
-    <None Include="Dataset\train-labels.idx1-ubyte" />
+    <None Include="Dataset\test_gaussian.csv" />
+    <None Include="Dataset\train_gaussian.csv" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -104,8 +102,6 @@
     <Content Include="Dataset\monks-2-train.txt" />
     <Content Include="Dataset\monks-3-test.txt" />
     <Content Include="Dataset\monks-3-train.txt" />
-    <None Include="Dataset\sinTest.txt" />
-    <None Include="Dataset\sinData.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DatasetUtility\DatasetUtility.csproj">
@@ -113,6 +109,7 @@
       <Name>DatasetUtility</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

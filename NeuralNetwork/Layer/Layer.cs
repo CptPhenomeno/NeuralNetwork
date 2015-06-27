@@ -26,8 +26,8 @@
             this.numberOfInputs = numOfInputs;
             this.activationFunction = activationFunction;
 
-            //STD_NORMAL = Math.Sqrt(1.0 / (NumberOfInputs + 1));
-            STD_NORMAL = 1;
+            STD_NORMAL = Math.Sqrt(1.0 / (NumberOfInputs + 1));
+            //STD_NORMAL = 1;
 
             bias = Vector<double>.Build.Random(NumberOfNeurons, new Normal(0, STD_NORMAL));
             localField = Vector<double>.Build.Dense(NumberOfNeurons);
@@ -44,7 +44,7 @@
             localField.Add(bias, localField);
 
             //Apply the activation function to the local field
-            localField.Map((l => activationFunction.Function(l)), output);
+            output = activationFunction.Function(localField);
         }
 
         public void Update(Matrix<double> weightsUpdates, Vector<double> biasesUpdates)
@@ -89,7 +89,7 @@
 
         public Vector<double> LocalFieldDifferentiated
         {
-            get { return localField.Map((l => activationFunction.Derivative(l))); }
+            get { return activationFunction.Derivative(localField); }
         }
 
         #endregion

@@ -1,15 +1,18 @@
 ﻿namespace NeuralNetwork.Activation
 {
+    using MathNet.Numerics.LinearAlgebra;
+    using MathNet.Numerics.LinearAlgebra.Double;
+
     public class LinearFunction : IActivationFunction
     {
-        public double Function(double x)
+        public Vector<double> Function(Vector<double> x)
         {
             return x;
         }
 
-        public double Derivative(double x)
+        public Vector<double> Derivative(Vector<double> x)
         {
-            return 1;
+            return Vector<double>.Build.Dense(x.Count, 1.0);
         }
     }
 }

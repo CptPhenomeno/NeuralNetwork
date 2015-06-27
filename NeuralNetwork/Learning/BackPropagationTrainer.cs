@@ -203,6 +203,8 @@ using System.IO;
             double validationError = 0.0;
             double trainingError = 0.0;
 
+            //double previousError = double.MaxValue;
+
             double bestValidationError = double.MaxValue;
             double bestTrainingError = double.MaxValue;
 
@@ -213,6 +215,8 @@ using System.IO;
             do
             {
                 ++epoch;
+
+                trainSet.Shuffle();
 
                 double[] errors = KFoldsTrain(trainSet, folds);
                 
@@ -230,9 +234,61 @@ using System.IO;
                     validationFail++;
                 }
 
+                //if (validationError <= previousError)
+                //{
+                //    validationFail = 0;
+                //    if (validationError < bestValidationError)
+                //    {
+                //        bestValidationError = validationError;
+                //        bestTrainingError = trainingError;
+                //    }
+                //}
+                //else
+                //    validationFail++;
+
+                //previousError = validationError;
+
             } while (validationFail < maxFails && bestValidationError > MaxError && epoch < MaxEpoch);
 
             return new double[] {bestValidationError, bestTrainingError};
+        }
+
+        public void CrossValidationLearn(Dataset trainSet, int folds = 5, string filepath = null)
+        {
+            double validationError = 0.0;
+            double trainingError = 0.0;
+
+            int epoch = -1;
+
+            StreamWriter writer = null;
+
+            if (filepath != null)
+                writer = new StreamWriter(filepath, false);
+
+            do
+            {
+                ++epoch;
+
+                if (epoch % 100 == 0)
+                    Console.WriteLine("-- Epoch {0} --", epoch);
+
+                double[] errors = KFoldsTrain(trainSet, folds);
+
+                validationError = errors[0];
+                trainingError = errors[1];
+
+                if (writer != null)
+                {
+                    writer.WriteLine("{0},{1}", trainingError.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                                validationError.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                }
+
+                trainSet.Shuffle();
+
+            } while (trainingError > MaxError && epoch < MaxEpoch);
+
+            if (writer != null)
+                writer.Close();
         }
 
         public NeuralNet CrossValidationLearnWithModelSelection(Dataset trainSet,

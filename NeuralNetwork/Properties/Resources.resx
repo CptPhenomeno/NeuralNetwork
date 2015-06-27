@@ -142,25 +142,10 @@
   <data name="monks_3_train" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Dataset\monks-3-train.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="mpg" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\mpg.csv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="test_gaussian" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Dataset\test_gaussian.csv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="sinData" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\sinData.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="sinTest" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\sinTest.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="t10k_images" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\t10k-images.idx3-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="t10k_labels" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\t10k-labels.idx1-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="train_images" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\train-images.idx3-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="train_labels" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Dataset\train-labels.idx1-ubyte;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="train_gaussian" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Dataset\train_gaussian.csv;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

@@ -2,6 +2,9 @@
 {
     using System;
 
+    using MathNet.Numerics.LinearAlgebra;
+    using MathNet.Numerics.LinearAlgebra.Double;
+
     public class HyperbolicTangentFunction : IActivationFunction
     {
         private double alpha;
@@ -13,15 +16,15 @@
             this.beta = beta;
         }
 
-        public double Function(double x)
+        public Vector<double> Function(Vector<double> x)
         {
-            return alpha * Math.Tanh(beta * x);
+            return alpha * x.Map(e => Math.Tanh(beta * e));
         }
 
-        public double Derivative(double x)
+        public Vector<double> Derivative(Vector<double> x)
         {
-            double y = Function(x);
-            return (beta / alpha) * (alpha - y) * (alpha + y);
+            Vector<double> y = Function(x);
+            return (beta / alpha) * y.Map(e => (alpha - e) * (alpha + e));
         }
     }
 }

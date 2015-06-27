@@ -1,8 +1,11 @@
 ﻿namespace NeuralNetwork.Activation
 {
+    using MathNet.Numerics.LinearAlgebra;
+    using MathNet.Numerics.LinearAlgebra.Double;
+
     public interface IActivationFunction
     {
-        double Function (double x);
-        double Derivative(double x);
+        Vector<double> Function(Vector<double> x);
+        Vector<double> Derivative(Vector<double> x);
     }
 }

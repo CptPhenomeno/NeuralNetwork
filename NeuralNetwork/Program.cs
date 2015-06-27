@@ -25,14 +25,14 @@ namespace NeuralNetwork
     {
         #region Monk test
        
-        static double[] Encode(int value, byte encode)
+        private static double[] Encode(int value, byte encode)
         {
             double[] encoded = new double[encode];
             encoded[value - 1] = 1;
             return encoded;
         }
 
-        static double[] EncodingInput(string[] inputs)
+        private static double[] EncodingInput(string[] inputs)
         {
             List<double> input = new List<double>();
             byte[] encoding = { 3, 3, 2, 3, 4, 2 };
@@ -44,7 +44,7 @@ namespace NeuralNetwork
             return input.ToArray();
         }
 
-        static Dataset ReadMonkDataset(StringReader stream)
+        private static Dataset ReadMonkDataset(StringReader stream)
         {
             try
             {
@@ -128,23 +128,14 @@ namespace NeuralNetwork
 
                 backProp.MaxEpoch = 10000;
                 backProp.BatchSize = trainSet.Size;
-
-                Console.WriteLine("*******************");
-                Console.WriteLine("Monk Dataset 1");
-                Console.WriteLine("*******************");
-                Console.WriteLine("Before training the success ratio is {0}", RunMonkTest(net, testSet));
-
-                Console.WriteLine("Train the network...");
-
-
                 //net = backProp.Learn(trainSet, @"C:\Users\Gabriele\neural-net\matlab\monk-1-learning_curves.log", testSet);
                 net = backProp.CrossValidationLearnWithModelSelection(trainSet, etaValues, alphaValues, lambdaValues, 3, 10, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk-1-learning_curves.log", testSet);
 
-                Console.WriteLine("done!");
-                double acc = 0;
-                Console.WriteLine("After training the success ratio is {0}", acc = RunMonkTest(net, testSet, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk1-out.csv"));
+               // backProp.CrossValidationLearn(trainSet, 5, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk-1-learning_curves.log");
 
-                Console.WriteLine("*******************");
+                double acc = RunMonkTest(net, testSet, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk1-out.csv");
+                
+                Console.WriteLine("The accuracy is: {0}", acc);
 
                 return acc;
             }
@@ -226,11 +217,11 @@ namespace NeuralNetwork
 
         private static void TestMonk()
         {
-            
+            double numOfTest = 1.0;
 
-            double[] etaValues = { 0.01, 0.1, 0.3, 0.5 };
-            double[] alphaValues = { 0, 0.01, 0.05, 0.1 };
-            double[] lambdaValues = { 0, 0.01, 0.001, 0.0001 };
+            double[] etaValues = { 0.1, 0.3 };
+            double[] alphaValues = { 0, 0.01, 0.05 };
+            double[] lambdaValues = { 0, 0.0001, 0.001 };
 
             IActivationFunction hyperbolic = new HyperbolicTangentFunction();
             IActivationFunction sigmoid = new SigmoidFunction();
@@ -239,9 +230,9 @@ namespace NeuralNetwork
             IActivationFunction[] functions = { hyperbolic, hyperbolic };
             
             double acc = 0;
-            for (int i = 0; i < 10; i++ )
+            for (int i = 0; i < numOfTest; i++ )
                 acc+=TestMonk1(functions, etaValues, alphaValues, lambdaValues);
-            Console.WriteLine("accuracy: " + acc / 10.0);
+            Console.WriteLine("accuracy: " + acc / numOfTest);
             //TestMonk2(functions, etaValues, alphaValues, lambdaValues);
 
             //TestMonk3(functions, etaValues, alphaValues, lambdaValues);
@@ -251,7 +242,7 @@ namespace NeuralNetwork
 
         #region Unipi test
 
-        static Dataset ReadExamDataset(StringReader stream)
+        private static Dataset ReadExamDataset(StringReader stream)
         {
             try
             {
@@ -289,8 +280,8 @@ namespace NeuralNetwork
                 return null;
             }
         }
-
-        static Matrix<double> NormalizeMatrixMinMax(Matrix<double> mat)
+        
+        private static Matrix<double> Unipi_NormalizeMatrixMinMax(Matrix<double> mat)
         {
             Tuple<double, double>[] min_max = new Tuple<double, double>[mat.ColumnCount];
 
@@ -313,8 +304,8 @@ namespace NeuralNetwork
 
             return mat;
         }
-
-        static Matrix<double> NormalizeMatrixMeanStd(Matrix<double> mat)
+        
+        private static Matrix<double> NormalizeMatrixMeanStd(Matrix<double> mat)
         {
             Tuple<double, double>[] mean_std = new Tuple<double, double>[mat.ColumnCount];
 
@@ -330,8 +321,8 @@ namespace NeuralNetwork
 
             return mat;
         }
-
-        static Dataset ReadExamDatasetAndNormalize(StringReader stream)
+        
+        private static Dataset ReadExamDatasetAndNormalize(StringReader stream)
         {
             try
             {
@@ -363,7 +354,7 @@ namespace NeuralNetwork
                     trainingExample = stream.ReadLine();
                 }
 
-                tmp = NormalizeMatrixMinMax(tmp);
+                tmp = Unipi_NormalizeMatrixMinMax(tmp);
 
                 for (int actualRow = 0; actualRow < r; actualRow++)
                 {
@@ -498,14 +489,151 @@ namespace NeuralNetwork
             }
             #endregion
         }
+        
         #endregion
 
+        #region Multiclassifier gaussian
+
+        private static Matrix<double> MCG_NormalizeMatrixMinMax(Matrix<double> mat)
+        {
+            Tuple<double, double>[] min_max = new Tuple<double, double>[mat.ColumnCount];
+
+            for (int c = 0; c < 2; c++)
+            {
+                min_max[c] = new Tuple<double, double>(Statistics.Minimum(mat.Column(c)),
+                                                       Statistics.Maximum(mat.Column(c)));
+            }
+
+
+            for (int r = 0; r < mat.RowCount; r++)
+                for (int c = 0; c < 2; c++)
+                {
+                    double value = ((mat.At(r, c) - min_max[c].Item1) / (min_max[c].Item2 - min_max[c].Item1));
+                    value = value * 2 - 1;
+                    mat.At(r, c, value);
+                }
+
+            return mat;
+        }
+
+        private static Dataset ReadMCGExamDatasetAndNormalize(StringReader stream)
+        {
+            try
+            {
+                Dataset dataset = new Dataset();
+                string trainingExample = stream.ReadLine();
+                trainingExample.TrimEnd();
+                char[] separator = { ',' };
+                int r = 0;
+                Matrix<double> tmp = null;
+                double[] values = null;
+                int index = 0;
+
+                while (trainingExample != null)
+                {
+                    string[] strings = trainingExample.Split(separator);
+                    if (values == null)
+                        values = new double[5];
+                    else
+                        Array.Clear(values, 0, values.Length);
+
+                    for (index = 0; index < strings.Length - 1; index++)
+                        values[index] = Double.Parse(strings[index], System.Globalization.CultureInfo.InvariantCulture);
+                    
+                    Array.Copy(Encode(Int32.Parse(strings[index], System.Globalization.CultureInfo.InvariantCulture), 3), 0,
+                               values, index, 3);
+
+                    if (tmp == null)
+                        tmp = Matrix<double>.Build.DenseOfRowVectors(Vector<double>.Build.DenseOfArray(values));
+                    else
+                        tmp = tmp.InsertRow(r, Vector<double>.Build.DenseOfArray(values));
+
+                    r++;
+                    trainingExample = stream.ReadLine();
+                }
+
+                tmp = MCG_NormalizeMatrixMinMax(tmp);
+
+                for (int actualRow = 0; actualRow < r; actualRow++)
+                {
+                    Vector<double> input = tmp.Row(actualRow, 0, 2);
+                    Vector<double> output = tmp.Row(actualRow, 2, 3);
+
+                    dataset.Add(new Sample(input, output));
+
+                    input = output = null;
+                }
+
+                return dataset;
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e);
+                return null;
+            }
+        }
+
+        private static double TestAccuracy(NeuralNet net, Dataset testSet, string filepath = null)
+        {
+            double accuracy = 0.0;
+
+            foreach (Sample s in testSet.Samples)
+            {
+                int expectedClass = s.Output.MaximumIndex();
+                net.ComputeOutput(s.Input);
+                int obtainedClass = net.Output.MaximumIndex();
+
+                if (obtainedClass == expectedClass)
+                    ++accuracy;
+            }
+
+            return accuracy / testSet.Size;
+        }
+
+        private static void TestMCG()
+        {
+            Dataset trainSet;
+            Dataset testSet;
+
+            int[] layerSize = { 10, 3 };
+
+            IActivationFunction hyperbolic = new HyperbolicTangentFunction();
+            IActivationFunction sigmoid = new SigmoidFunction();
+            IActivationFunction linear = new LinearFunction();
+            IActivationFunction softmax = new SoftmaxFunction();
+
+            IActivationFunction[] functions = { hyperbolic, softmax };
+            NeuralNet net = new NeuralNet(2, layerSize, functions);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.1, 0.01, 0.0001, 0.0001);
+
+            double[] etaValues = { 0.1, 0.3, 0.5 };
+            double[] alphaValues = { 0, 0.01, 0.05 };
+            double[] lambdaValues = { 0, 0.0001, 0.001 };
+
+            using (StringReader trainSetStream = new StringReader(Properties.Resources.train_gaussian))
+            using (StringReader testSetStream = new StringReader(Properties.Resources.test_gaussian))
+            {
+                trainSet = ReadMCGExamDatasetAndNormalize(trainSetStream);
+                testSet = ReadMCGExamDatasetAndNormalize(testSetStream);
+
+                //backProp.MaxEpoch = 1000;
+                backProp.BatchSize = trainSet.Size;
+
+                net = backProp.CrossValidationLearnWithModelSelection(trainSet, etaValues, alphaValues, lambdaValues, 10, 10, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\multigaussian\multigaussian-learning_curves.log", testSet);
+
+                double accuracy = TestAccuracy(net, testSet);
+
+                Console.WriteLine("Accuracy for multi gaussian problem: {0}", accuracy);
+            }
+        }
+
+        #endregion
 
         public static void Main()
         {
-			TestMonk();
-            //TestAA1Exam();
+			//TestMonk();
+            TestAA1Exam();
+            //TestMCG();
         }
-
     }
 }
