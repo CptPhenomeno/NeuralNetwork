@@ -13,6 +13,7 @@ using MathNet.Numerics.Statistics;
 using NeuralNetwork.Network;
 using NeuralNetwork.Learning;
 using NeuralNetwork.Activation;
+using NeuralNetwork.ErrorFunctions;
 using NeuralNetwork.Utils.Extensions;
 
 using DatasetUtility;
@@ -111,14 +112,14 @@ namespace NeuralNetwork
             return successRatio / (double)numOfExamples;
         }
 
-        private static double TestMonk1(IActivationFunction[] functions, double[] etaValues, double[] alphaValues, double[] lambdaValues)
+        private static void TestMonk1(IActivationFunction[] functions, double[] etaValues, double[] alphaValues, double[] lambdaValues)
         {
             Dataset trainSet;
             Dataset testSet;
 
             int[] layerSize = { 3, 1 };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3, 0, 0, 0.0001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.3, 0, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_1_train))
             using (StringReader testSetStream = new StringReader(Properties.Resources.monks_1_test))
@@ -132,12 +133,8 @@ namespace NeuralNetwork
                 net = backProp.CrossValidationLearnWithModelSelection(trainSet, etaValues, alphaValues, lambdaValues, 3, 10, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk-1-learning_curves.log", testSet);
 
                // backProp.CrossValidationLearn(trainSet, 5, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk-1-learning_curves.log");
-
-                double acc = RunMonkTest(net, testSet, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk1-out.csv");
                 
-                Console.WriteLine("The accuracy is: {0}", acc);
-
-                return acc;
+                Console.WriteLine("The accuracy is: {0}", RunMonkTest(net, testSet, @"D:\FTP\home\Documents\Informatics\unipi\aa1\project\test-output\old-release\monk1\monk1-out.csv"));
             }
         }
 
@@ -148,7 +145,7 @@ namespace NeuralNetwork
 
             int[] layerSize = { 3, 1 };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3, 0, 0, 0.0001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.3, 0, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_2_train))
             using (StringReader testSetStream = new StringReader(Properties.Resources.monks_2_test))
@@ -185,7 +182,7 @@ namespace NeuralNetwork
 
             int[] layerSize = { 3, 1 };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.3, 0, 0, 0.0001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.3, 0, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_3_train))
             using (StringReader testSetStream = new StringReader(Properties.Resources.monks_3_test))
@@ -217,8 +214,6 @@ namespace NeuralNetwork
 
         private static void TestMonk()
         {
-            double numOfTest = 1.0;
-
             double[] etaValues = { 0.1, 0.3 };
             double[] alphaValues = { 0, 0.01, 0.05 };
             double[] lambdaValues = { 0, 0.0001, 0.001 };
@@ -228,14 +223,12 @@ namespace NeuralNetwork
             IActivationFunction linear = new LinearFunction();
 
             IActivationFunction[] functions = { hyperbolic, hyperbolic };
-            
-            double acc = 0;
-            for (int i = 0; i < numOfTest; i++ )
-                acc+=TestMonk1(functions, etaValues, alphaValues, lambdaValues);
-            Console.WriteLine("accuracy: " + acc / numOfTest);
-            //TestMonk2(functions, etaValues, alphaValues, lambdaValues);
 
-            //TestMonk3(functions, etaValues, alphaValues, lambdaValues);
+            TestMonk1(functions, etaValues, alphaValues, lambdaValues);
+
+            TestMonk2(functions, etaValues, alphaValues, lambdaValues);
+
+            TestMonk3(functions, etaValues, alphaValues, lambdaValues);
         }
        
         #endregion
@@ -296,7 +289,7 @@ namespace NeuralNetwork
                 for (int c = 0; c < mat.ColumnCount; c++)
                 {
                     double value = ((mat.At(r, c) - min_max[c].Item1) / (min_max[c].Item2 - min_max[c].Item1));
-                    if (c < 10)
+                    //if (c < 10)
                         value = value * 2 - 1;
                     mat.At(r, c, value);
                     
@@ -375,7 +368,7 @@ namespace NeuralNetwork
             }
         }
 
-        private static double RunExamTest(NeuralNet net, Dataset testSet, bool flag = false)
+        private static double RunExamTest(NeuralNet net, Dataset testSet, ErrorFunction errorFunction, bool flag = false)
         {
             int numOfExamples = testSet.Size;
             double error = 0.0;
@@ -404,11 +397,9 @@ namespace NeuralNetwork
                     //Console.WriteLine("{0} {1}", netOutput.At(0).ToString(System.Globalization.CultureInfo.InvariantCulture), 
                         //netOutput.At(1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
-                Vector<double> errorVector = expected - netOutput;
-                error += errorVector.DotProduct(errorVector);
+                error += errorFunction(expected, netOutput);
             }
 
-            error /= 2;
             error /= numOfExamples;
 
             outputFile.Close();
@@ -451,13 +442,13 @@ namespace NeuralNetwork
             IActivationFunction sigmoid = new SigmoidFunction();
             IActivationFunction linear = new LinearFunction();
 
-            IActivationFunction[] functions = { hyperbolic, sigmoid };
+            IActivationFunction[] functions = { hyperbolic, hyperbolic };
             NeuralNet net = new NeuralNet(10, layerSize, functions);
             BlockingCollection<string> data = new BlockingCollection<string>(100);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.1, 0.01, 0.0001, 0.0001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.1, 0.01, 0.0001, 0.0001);
 
-            double[] etaValues = { 0.2, 0.3, 0.4 };
-            double[] alphaValues = { 0, 0.04, 0.05, 0.06 };
+            double[] etaValues = { 0.35, 0.4, 0.5 };
+            double[] alphaValues = { 0, 0.01, 0.02, 0.03 };
             double[] lambdaValues = { 0, 0.0001, 0.0005 };
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.AA1_trainset))
@@ -472,7 +463,7 @@ namespace NeuralNetwork
                 Console.WriteLine("*******************");
                 Console.WriteLine("AA1 Exam Test");
                 Console.WriteLine("*******************");
-                Console.WriteLine("Before training the error is {0}", RunExamTest(net, testSet));
+                Console.WriteLine("Before training the error is {0}", RunExamTest(net, testSet, ErrorFunctionContainer.EUCLIDEAN_ERROR));
                 Console.WriteLine("Before training the accuracy is {0}", RunExamTestAccuracy(net, testSet));
 
                 Console.WriteLine("Train the network...");
@@ -482,7 +473,7 @@ namespace NeuralNetwork
                 //net = backProp.Learn(trainSet, @"C:\Users\Gabriele\neural-net\matlab\aa1-learning_curves.log", testSet);
                 Console.WriteLine("done!");
 
-                Console.WriteLine("After training the error is {0}", RunExamTest(net, testSet, false));
+                Console.WriteLine("After training the error is {0}", RunExamTest(net, testSet, ErrorFunctionContainer.EUCLIDEAN_ERROR));
                 //Console.WriteLine("After training the accuracy is {0}", RunExamTestAccuracy(net, testSet));
 
                 Console.WriteLine("*******************");
@@ -604,7 +595,7 @@ namespace NeuralNetwork
 
             IActivationFunction[] functions = { hyperbolic, softmax };
             NeuralNet net = new NeuralNet(2, layerSize, functions);
-            BackPropagationTrainer backProp = new BackPropagationTrainer(net, 0.1, 0.01, 0.0001, 0.0001);
+            BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.1, 0.01, 0.0001, 0.0001);
 
             double[] etaValues = { 0.1, 0.3, 0.5 };
             double[] alphaValues = { 0, 0.01, 0.05 };

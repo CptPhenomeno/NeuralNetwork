@@ -55,7 +55,8 @@
     <Compile Include="Activation\LinearFunction.cs" />
     <Compile Include="Activation\SigmoidFunction.cs" />
     <Compile Include="Activation\SoftmaxFunction.cs" />
-    <Compile Include="ErrorFunction\ErrorFunction.cs" />
+    <Compile Include="ErrorFunctions\ErrorFunction.cs" />
+    <Compile Include="ErrorFunctions\ErrorFunctionContainer.cs" />
     <Compile Include="Layer\LayerFactory.cs" />
     <Compile Include="Learning\Backpropagation.cs" />
     <Compile Include="Layer\Layer.cs" />
