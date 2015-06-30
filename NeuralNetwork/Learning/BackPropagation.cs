@@ -7,17 +7,21 @@
 
     using NeuralNetwork.Network;
     using NeuralNetwork.Layer;
+    using NeuralNetwork.ErrorFunctions;
 
     using DatasetUtility;
 
     public class Backpropagation
     {
         private NeuralNet net;
+
+        private ErrorFunction errorFunction;
+
         private Vector<double>[] deltas;
         private Matrix<double>[] weightsUpdates;
         private Matrix<double>[] oldWeightsUpdates;
         private Vector<double>[] biasesUpdates;
-        
+
         private int batchSize;
 
         private double learningRate;
@@ -26,8 +30,10 @@
 
         private int samplesUsed;
 
-        public Backpropagation(NeuralNet net, double learningRate, double momentum, double weightDecay, int batchSize)
+        public Backpropagation(NeuralNet net, ErrorFunction errorFunction, double learningRate, double momentum, double weightDecay, int batchSize)
         {
+            this.errorFunction = errorFunction;
+
             this.learningRate = learningRate;
             this.momentum = momentum;
             this.batchSize = batchSize;
@@ -50,8 +56,7 @@
             //Vector with error for each output of the network
             Vector<double> netError = sample.Output - net.Output;
 
-            error += netError.DotProduct(netError);
-            error /= 2;
+            error += errorFunction(sample.Output, net.Output);
 
             ComputeOutputLayerUpdate(netError);
             ComputeHiddenLayersUpdate(sample.Input);

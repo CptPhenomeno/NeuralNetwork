@@ -5,9 +5,9 @@
 
     using MathNet.Numerics.LinearAlgebra;
     using MathNet.Numerics.LinearAlgebra.Double;
-    
-    
+        
     using NeuralNetwork.Network;
+    using NeuralNetwork.ErrorFunctions;
     using NeuralNetwork.Utils.Extensions;
 
     using DatasetUtility;
@@ -17,6 +17,9 @@ using System.IO;
     public class BackPropagationTrainer
     {
         private NeuralNet net;
+
+        private ErrorFunction errorFunction;
+
         private Backpropagation backpropagation;
         private BlockingCollection<string> errorOnEpochs;
         private bool logInformationEnabled;
@@ -28,12 +31,15 @@ using System.IO;
 
         private bool running;
 
-        public BackPropagationTrainer(NeuralNet net, double learningRate = 0.3, double momentum = 0.0, 
+        public BackPropagationTrainer(NeuralNet net, ErrorFunction errorFunction, double learningRate = 0.3, double momentum = 0.0, 
                                       double weightDecay = 0.001, double maxError = 0.01, int maxEpoch = 1000, 
                                       int numFold = 4, int batchSize = 1)
         {
             this.net = net;
-            backpropagation = new Backpropagation(net, learningRate, momentum, weightDecay, batchSize);
+
+            this.errorFunction = errorFunction;
+
+            backpropagation = new Backpropagation(net, errorFunction, learningRate, momentum, weightDecay, batchSize);
             logInformationEnabled = false;
             running = false;
             this.maxError = maxError;
@@ -59,6 +65,9 @@ using System.IO;
             {
                 ++epoch;
 
+                //Shuffle the examples
+                //trainSet.Shuffle();
+
                 if (testSet != null)
                 {
                     testError = RunTestSet(testSet);
@@ -68,6 +77,20 @@ using System.IO;
                     Console.WriteLine("--- Epoch {0} ---", epoch);
                 trainingError = RunEpoch(trainSet);
 
+                Console.WriteLine("--- Epoch {0}: {1} ---", epoch, trainingError);
+
+                if (double.IsNaN(trainingError))
+                {
+                    Console.WriteLine("Training error is NaN");
+                    break;
+                }
+
+                if (double.IsInfinity(trainingError))
+                {
+                    Console.WriteLine("Training error is Infinity");
+                    break;
+                }
+
                 if (writer != null)
                 {
                     if (testSet != null)
@@ -76,9 +99,6 @@ using System.IO;
                     else
                         writer.WriteLine(trainingError.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
-
-                //Shuffle the examples
-                trainSet.Shuffle();
 
             } while (trainingError > MaxError && epoch < MaxEpoch);
 
@@ -112,6 +132,8 @@ using System.IO;
                 //if (epoch % 100 == 0)
                 //    Console.WriteLine("--- Epoch {0} ---", epoch);
                 trainingError = RunEpoch(trainSet);
+
+                Console.WriteLine("--- Epoch {0}: {1} ---", epoch, trainingError);
 
                 if (writer != null)
                 {
@@ -384,7 +406,7 @@ using System.IO;
             if (next % BatchSize != 0)
                 backpropagation.UpdateNetwork();
 
-            error /= sizeOfTrainingSet;
+            error /= (double)sizeOfTrainingSet;
 
             return error;
         }
@@ -398,10 +420,7 @@ using System.IO;
             {
                 Sample sample = testSet[next];
                 net.ComputeOutput(sample.Input);
-                //Vector with error for each output of the network
-                Vector<double> netError = sample.Output - net.Output;
-                //I think that this matrix is 1x1 but is better check...
-                error += netError.DotProduct(netError);
+                error += errorFunction(sample.Output, net.Output);
             }
 
             error /= sizeOfTestSet;

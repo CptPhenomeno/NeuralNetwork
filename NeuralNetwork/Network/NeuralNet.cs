@@ -20,7 +20,7 @@
             if (sizeOfLayers.Length != activationOfLayers.Length)
                 throw new ArgumentException("Mismatch from number of layers and number of activations functions");
 
-            numberOfInputs = numOfInput;
+            NumberOfInputs = numOfInput;
             int length = sizeOfLayers.Length;
             netLayers = new Layer[length];
 
@@ -28,7 +28,7 @@
 
             for (int index = 1; index < length; index++)
             {
-                netLayers[index] = new Layer(activationOfLayers[index],sizeOfLayers[index], sizeOfLayers[index-1]);
+                netLayers[index] = new Layer(activationOfLayers[index], sizeOfLayers[index], sizeOfLayers[index-1]);
             }
 
             output = Vector<double>.Build.Dense(sizeOfLayers[length - 1], 1);
