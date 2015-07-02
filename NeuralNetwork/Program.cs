@@ -121,6 +121,7 @@ namespace NeuralNetwork
 
             int[] layerSize = { 3, 1 };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
+
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.1, 0.5, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_1_train))
@@ -138,13 +139,13 @@ namespace NeuralNetwork
 
                 backProp.MaxEpoch = 10000;
                 backProp.BatchSize = trainSet.Size;
-
+                
                 Console.WriteLine("done!");
 
                 net = backProp.Learn(trainSet, basePath + @"\monk1\monk-1-learning_curves.log", testSet);
                 //net = backProp.CrossValidationLearnWithModelSelection(trainSet, etaValues, alphaValues, lambdaValues, 3, 10, basePath+@"\monk1\monk-1-learning_curves.log", testSet);
-                
-                Console.WriteLine("After the training the accuracy is: {0}", RunMonkTest(net, testSet, basePath+@"\monk1\monk1-out.csv"));
+
+                Console.WriteLine("After the training the accuracy is: {0}", RunMonkTest(net, testSet, basePath + @"\monk1\monk1-out.csv"));
 
                 Console.WriteLine("*******************");
             }
@@ -157,6 +158,7 @@ namespace NeuralNetwork
 
             int[] layerSize = { 2, 1 };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
+
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.1, 0.5, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_2_train))
@@ -194,6 +196,7 @@ namespace NeuralNetwork
 
             int[] layerSize = { 4, 1 };
             NeuralNet net = new NeuralNet(17, layerSize, functions);
+
             BackPropagationTrainer backProp = new BackPropagationTrainer(net, ErrorFunctionContainer.SQUARED_ERROR, 0.1, 0.5, 0, 0.0001);
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.monks_3_train))
@@ -226,9 +229,9 @@ namespace NeuralNetwork
 
         private static void TestMonk()
         {
-            double[] etaValues = { 0.01, 0.1 };
-            double[] alphaValues = { 0 };
-            double[] lambdaValues = { 0 };
+            double[] etaValues = { 0.1, 0.3 };
+            double[] alphaValues = { 0, 0.01, 0.05 };
+            double[] lambdaValues = { 0, 0.0001, 0.001 };
 
             IActivationFunction hyperbolic = new HyperbolicTangentFunction();
             IActivationFunction sigmoid = new SigmoidFunction();
@@ -462,7 +465,6 @@ namespace NeuralNetwork
             double[] etaValues = { 0.05 };
             double[] alphaValues = { 0.02 };
             double[] lambdaValues = { 0.001 };
-            
 
             using (StringReader trainSetStream = new StringReader(Properties.Resources.AA1_trainset))
             using (StringReader testSetStream = new StringReader(Properties.Resources.AA1_testset))
